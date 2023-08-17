@@ -2,7 +2,7 @@
 
 ## Web 기능정의서
 
-##API Spec
+## API Spec
 
 |Function|Method|End Point|Page|
 |---|---|---|---|
@@ -46,11 +46,11 @@
 |채팅방 삭제|DELETE|/api/chatrooms/{chatroomId}||
 |채팅방 메시지 전송|POST|/api/chatrooms/{chatroomId}/messages||
 
-##ERD
+## ERD
 
 <img src="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2Fcp4Hm0%2Fbtsrf44uvKe%2Fkhx1Q7YEYfN8gUGfNI5o21%2Fimg.png" width="500" height="500"/>
 
-##Commit Convention
+## Commit Convention
 
 >feat: 사용자 등록 기능 추가
 <br>
