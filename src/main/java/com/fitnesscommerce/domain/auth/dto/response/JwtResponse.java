@@ -1,7 +1,6 @@
-package com.fitnesscommerce.domain.member.dto.response;
+package com.fitnesscommerce.domain.auth.dto.response;
 
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
 public class JwtResponse {

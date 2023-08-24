@@ -1,4 +1,4 @@
-package com.fitnesscommerce.domain.member.dto.request;
+package com.fitnesscommerce.domain.auth.dto.request;
 
 import jakarta.validation.constraints.Email;
 import lombok.Builder;
@@ -8,7 +8,7 @@ import org.hibernate.validator.constraints.Length;
 
 @Getter
 @NoArgsConstructor
-public class MemberLoginRequest {
+public class LoginRequest {
 
     @Email(message = "올바른 이메일 형식이 아닙니다.")
     private String email;
@@ -17,7 +17,7 @@ public class MemberLoginRequest {
     private String password;
 
     @Builder
-    public MemberLoginRequest(String email, String password) {
+    public LoginRequest(String email, String password) {
         this.email = email;
         this.password = password;
     }
