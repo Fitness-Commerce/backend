@@ -1,5 +1,6 @@
 package com.fitnesscommerce.shop.domain;
 
+import com.fitnesscommerce.domain.member.domain.Member;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -17,6 +18,7 @@ public class Item extends BaseEntity {
     private Member member;
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "item_id")
     private List<ItemImage> itemImages = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -32,31 +34,33 @@ public class Item extends BaseEntity {
 
     private Integer itemPrice;
 
-    private Integer itemStatus;
+    private String itemStatus;
 
     @Builder
     public Item(Member member, List<ItemImage> itemImages, ItemCategory itemCategory,
-                String itemName, String itemDetail, Integer itemPrice) {
+                String itemName, String itemDetail, Integer itemPrice, String itemStatus) {
         this.member = member;
-        this.itemImages = itemImages;
-        this.itemCategory = itemCategory;
-        this.itemName = itemName;
-        this.itemDetail = itemDetail;
-        this.itemPrice = itemPrice;
-        this.itemStatus = 0;
-    }
-
-    // Change method to update item properties and update updatedAt
-    public Item change(Member member, List<ItemImage> itemImages, ItemCategory itemCategory,
-                       String itemName, String itemDetail, Integer itemPrice, Integer itemStatus) {
-        this.member = member;
-        this.itemImages = itemImages;
+        this.itemImages = (itemImages != null) ? itemImages : new ArrayList<>();
         this.itemCategory = itemCategory;
         this.itemName = itemName;
         this.itemDetail = itemDetail;
         this.itemPrice = itemPrice;
         this.itemStatus = itemStatus;
-        this.updatedAt = LocalDateTime.now();  // Update updatedAt
-        return this;  // Return the updated item
+        this.createdAt = LocalDateTime.now();
+    }
+
+    public void change(ItemCategory itemCategory, String itemName, String itemDetail,
+                       Integer itemPrice, String itemStatus, List<ItemImage> newImages) {
+        this.itemCategory = itemCategory;
+        this.itemName = itemName;
+        this.itemDetail = itemDetail;
+        this.itemPrice = itemPrice;
+        this.itemStatus = itemStatus;
+        this.updatedAt = LocalDateTime.now();
+
+        if (newImages != null) {
+            this.itemImages.addAll(newImages);
+        }
+
     }
 }

@@ -1,10 +1,10 @@
 package com.fitnesscommerce.domain.member.service;
 
+import com.fitnesscommerce.domain.auth.dto.request.LoginRequest;
 import com.fitnesscommerce.domain.member.crypto.PasswordEncoder;
 import com.fitnesscommerce.domain.member.domain.Address;
 import com.fitnesscommerce.domain.member.domain.Member;
 import com.fitnesscommerce.domain.member.dto.request.MemberJoinRequest;
-import com.fitnesscommerce.domain.member.dto.request.MemberLoginRequest;
 import com.fitnesscommerce.domain.member.exception.*;
 import com.fitnesscommerce.domain.member.repository.MemberRepository;
 import com.fitnesscommerce.global.config.AppConfig;
@@ -67,7 +67,7 @@ public class MemberService {
     }
 
     @Transactional
-    public String[] login(MemberLoginRequest request) {
+    public String[] login(LoginRequest request) {
         Member member = memberRepository.findByEmail(request.getEmail()).orElseThrow(EmailNotFound::new);
 
         if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {

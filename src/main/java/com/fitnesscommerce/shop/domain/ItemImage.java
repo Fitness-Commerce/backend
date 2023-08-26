@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "itemImage")
+@Table(name = "item_image")
 @Getter
 @NoArgsConstructor
 public class ItemImage {
@@ -20,7 +20,7 @@ public class ItemImage {
     private String url;
 
     @Builder
-    public ItemImage(String fileName, String url) {
+    public ItemImage(String fileName, String url, Item item) {
         this.fileName = fileName;
         this.url = url;
     }

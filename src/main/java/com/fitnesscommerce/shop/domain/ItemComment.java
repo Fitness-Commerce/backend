@@ -1,12 +1,13 @@
 package com.fitnesscommerce.shop.domain;
 
+import com.fitnesscommerce.domain.member.domain.Member;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "itemComment")
+@Table(name = "item_comment")
 @Getter
 @NoArgsConstructor
 public class ItemComment extends BaseEntity {

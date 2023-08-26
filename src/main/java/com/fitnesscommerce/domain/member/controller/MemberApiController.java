@@ -1,9 +1,9 @@
 package com.fitnesscommerce.domain.member.controller;
 
+import com.fitnesscommerce.domain.auth.dto.request.LoginRequest;
+import com.fitnesscommerce.domain.auth.dto.response.JwtResponse;
+import com.fitnesscommerce.domain.auth.dto.response.RefreshResponse;
 import com.fitnesscommerce.domain.member.dto.request.MemberJoinRequest;
-import com.fitnesscommerce.domain.member.dto.request.MemberLoginRequest;
-import com.fitnesscommerce.domain.member.dto.response.JwtResponse;
-import com.fitnesscommerce.domain.member.dto.response.RefreshResponse;
 import com.fitnesscommerce.domain.member.service.MemberService;
 
 import com.fitnesscommerce.global.config.data.MemberSession;
@@ -30,7 +30,7 @@ public class MemberApiController {
     }
 
     @PostMapping("/api/members/login")
-    public ResponseEntity<JwtResponse> memberLogin(@RequestBody MemberLoginRequest request) {
+    public ResponseEntity<JwtResponse> memberLogin(@RequestBody LoginRequest request) {
 
         String[] token = memberService.login(request);
         String accessToken = token[0];
