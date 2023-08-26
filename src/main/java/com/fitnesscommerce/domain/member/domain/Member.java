@@ -15,7 +15,7 @@ import java.util.List;
 @Getter
 public class Member {
 
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String email;
@@ -42,8 +42,6 @@ public class Member {
 
     private LocalDateTime updated_at;
 
-    private String refreshToken;
-
     @Builder
     public Member(String email, String password, String phoneNumber,
                   String username, String nickname, Role role, Address address) {
@@ -57,7 +55,14 @@ public class Member {
         this.created_at = LocalDateTime.now();
     }
 
-    public void saveRefreshToken(String refreshToken) {
-        this.refreshToken = refreshToken;
+    public void editMemberInfo(String nickname, String phoneNumber, Address address) {
+        this.nickname = nickname;
+        this.phoneNumber = phoneNumber;
+        this.address = address;
     }
+
+    public void changePassword(String password) {
+        this.password = password;
+    }
+
 }
