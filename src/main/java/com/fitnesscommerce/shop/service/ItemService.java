@@ -100,6 +100,12 @@ public class ItemService  {
         return itemImageRepository.saveAll(itemImages);
     }
 
+    //조회수 업데이트
+    @Transactional
+    public void updateViewCount(Long itemId) {
+        itemRepository.updateViewCount(itemId);
+    }
+
     @Transactional
     public ItemResponse getItemResponseById(Long itemId) {
         Item item = itemRepository.findById(itemId)
@@ -114,6 +120,7 @@ public class ItemService  {
                 .itemPrice(item.getItemPrice())
                 .itemStatus(item.getItemStatus())
                 .itemImagesUrl(item.getItemImages().stream().map(ItemImage::getUrl).collect(Collectors.toList()))
+                .viewCount(item.getViewCount())
                 .createdAt(item.getCreatedAt())
                 .updatedAt((item.getUpdatedAt()))
                 .build();
@@ -133,6 +140,7 @@ public class ItemService  {
                         .itemPrice(item.getItemPrice())
                         .itemStatus(item.getItemStatus())
                         .itemImagesUrl(item.getItemImages().stream().map(ItemImage::getUrl).collect(Collectors.toList()))
+                        .viewCount(item.getViewCount())
                         .createdAt(item.getCreatedAt())
                         .updatedAt(item.getUpdatedAt())
                         .build())

@@ -53,6 +53,7 @@ public class ItemApiController {
 
     @GetMapping("/{itemId}")
     public ResponseEntity<ItemResponse> getItemById(@PathVariable Long itemId) {
+        itemService.updateViewCount(itemId);
         ItemResponse itemResponse = itemService.getItemResponseById(itemId);
         return ResponseEntity.ok(itemResponse);
     }

@@ -36,9 +36,11 @@ public class Item extends BaseEntity {
 
     private String itemStatus;
 
+    private Integer viewCount;
+
     @Builder
     public Item(Member member, List<ItemImage> itemImages, ItemCategory itemCategory,
-                String itemName, String itemDetail, Integer itemPrice, String itemStatus) {
+                String itemName, String itemDetail, Integer itemPrice, String itemStatus, Integer viewCount) {
         this.member = member;
         this.itemImages = (itemImages != null) ? itemImages : new ArrayList<>();
         this.itemCategory = itemCategory;
@@ -47,6 +49,7 @@ public class Item extends BaseEntity {
         this.itemPrice = itemPrice;
         this.itemStatus = itemStatus;
         this.createdAt = LocalDateTime.now();
+        this.viewCount = 0;
     }
 
     public void change(ItemCategory itemCategory, String itemName, String itemDetail,

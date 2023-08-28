@@ -17,13 +17,14 @@ public class ItemResponse {
     private int itemPrice;
     private String itemStatus;
     private List<String> itemImagesUrl;
+    private int viewCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     @Builder
     public ItemResponse(Long id, Long memberId, Long itemCategoryId, String itemName,
                         String itemDetail, int itemPrice, String itemStatus,
-                        List<String> itemImagesUrl, String itemContent,
+                        List<String> itemImagesUrl, int viewCount,
                         LocalDateTime createdAt,LocalDateTime updatedAt) {
         this.id = id;
         this.memberId = memberId;
@@ -33,6 +34,7 @@ public class ItemResponse {
         this.itemPrice = itemPrice;
         this.itemStatus = itemStatus;
         this.itemImagesUrl = itemImagesUrl;
+        this.viewCount = viewCount;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
