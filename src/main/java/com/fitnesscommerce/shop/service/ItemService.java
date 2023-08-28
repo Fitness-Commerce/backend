@@ -41,6 +41,7 @@ public class ItemService  {
     @Value("${file.storage.location}")
     private String fileStorageLocation;
 
+
     @Transactional
     public Item saveItem(ItemCreate itemCreate) {
 
@@ -117,6 +118,27 @@ public class ItemService  {
                 .updatedAt((item.getUpdatedAt()))
                 .build();
     }
+
+    @Transactional
+    public List<ItemResponse> getAllItemResponses() {
+        List<Item> items = itemRepository.findAll();
+
+        return items.stream()
+                .map(item -> ItemResponse.builder()
+                        .id(item.getId())
+                        .memberId(item.getMember().getId())
+                        .itemCategoryId(item.getItemCategory().getId())
+                        .itemName(item.getItemName())
+                        .itemDetail(item.getItemDetail())
+                        .itemPrice(item.getItemPrice())
+                        .itemStatus(item.getItemStatus())
+                        .itemImagesUrl(item.getItemImages().stream().map(ItemImage::getUrl).collect(Collectors.toList()))
+                        .createdAt(item.getCreatedAt())
+                        .updatedAt(item.getUpdatedAt())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
 
     @Transactional
     public Item updateItem(Long itemId, ItemUpdate itemUpdate) {

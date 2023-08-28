@@ -57,6 +57,12 @@ public class ItemApiController {
         return ResponseEntity.ok(itemResponse);
     }
 
+    @GetMapping
+    public ResponseEntity<List<ItemResponse>> getAllItems() {
+        List<ItemResponse> itemResponses = itemService.getAllItemResponses();
+        return ResponseEntity.ok(itemResponses);
+    }
+
     @PutMapping("/{itemId}")
     public ResponseEntity<ItemResponse> updateItem(
             @PathVariable Long itemId,
