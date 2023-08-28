@@ -1,5 +1,6 @@
 package com.fitnesscommerce.domain.member.service;
 
+import com.fitnesscommerce.domain.auth.dto.request.LoginRequest;
 import com.fitnesscommerce.domain.member.crypto.PasswordEncoder;
 import com.fitnesscommerce.domain.member.domain.Address;
 import com.fitnesscommerce.domain.member.domain.Member;
@@ -62,7 +63,6 @@ public class MemberService {
 
         memberRepository.save(member);
     }
-
 
 
 
