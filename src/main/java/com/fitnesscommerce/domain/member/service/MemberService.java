@@ -4,21 +4,22 @@ import com.fitnesscommerce.domain.auth.dto.request.LoginRequest;
 import com.fitnesscommerce.domain.member.crypto.PasswordEncoder;
 import com.fitnesscommerce.domain.member.domain.Address;
 import com.fitnesscommerce.domain.member.domain.Member;
+import com.fitnesscommerce.domain.member.dto.request.MemberEditPasswordRequest;
+import com.fitnesscommerce.domain.member.dto.request.MemberEditRequest;
 import com.fitnesscommerce.domain.member.dto.request.MemberJoinRequest;
+import com.fitnesscommerce.domain.member.dto.request.MemberSearch;
+import com.fitnesscommerce.domain.member.dto.response.MemberResponse;
 import com.fitnesscommerce.domain.member.exception.*;
 import com.fitnesscommerce.domain.member.repository.MemberRepository;
 import com.fitnesscommerce.global.config.AppConfig;
 import com.fitnesscommerce.global.config.data.MemberSession;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.crypto.SecretKey;
-import java.util.Date;
+import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,9 +29,6 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final AppConfig appConfig;
-
-    public static long ACCESS_TOKEN_EXPIRATION_TIME = 1 * 60 * 1000; // 30분
-    public static long REFRESH_TOKEN_EXPIRATION_TIME = 7 * 24 * 60 * 60 * 1000; // 7일
 
     @Transactional
     public void signup(MemberJoinRequest request) {
@@ -66,44 +64,6 @@ public class MemberService {
         memberRepository.save(member);
     }
 
-    @Transactional
-    public String[] login(LoginRequest request) {
-        Member member = memberRepository.findByEmail(request.getEmail()).orElseThrow(EmailNotFound::new);
-
-        if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
-            throw new InvalidPassword();
-        }
-
-        long curTime = System.currentTimeMillis();
-
-        SecretKey key = Keys.hmacShaKeyFor(appConfig.getJwtKey());
-        System.out.println(new Date(curTime + ACCESS_TOKEN_EXPIRATION_TIME));
-
-        String accessToken = Jwts.builder()
-                .setSubject(String.valueOf(member.getId()))
-                .claim("tokenType", "access")
-                .signWith(key)
-                .setExpiration(new Date(curTime + ACCESS_TOKEN_EXPIRATION_TIME))
-                .setIssuedAt(new Date(curTime))
-                .compact();
-
-        System.out.println();
-
-        String refreshTokenId = generateRandomToken();
-
-        String refreshToken = Jwts.builder()
-                //.setSubject(String.valueOf(member.getId())) // -> refresh token으로도 접근이 가능하게 함 (비추)
-                .claim("tokenType", "refresh")
-                .claim("refreshTokenId", refreshTokenId)
-                .signWith(key)
-                .setExpiration(new Date(curTime + REFRESH_TOKEN_EXPIRATION_TIME))
-                .setIssuedAt(new Date(curTime))
-                .compact();
-
-        member.saveRefreshToken(refreshToken);
-
-        return new String[]{accessToken, refreshToken};
-    }
 
 
     private void check_duplicates(MemberJoinRequest request) {
@@ -122,37 +82,89 @@ public class MemberService {
     }
 
 
-    public String validate(String refreshToken, MemberSession session) {
 
+
+    public MemberResponse findOne(Long memberId) {
+        Member member = memberRepository.findById(memberId).orElseThrow(IdNotFound::new);
+
+        MemberResponse response = MemberResponse.builder()
+                .id(member.getId())
+                .email(member.getEmail())
+                .username(member.getUsername())
+                .nickname(member.getNickname())
+                .phoneNumber(member.getPhoneNumber())
+                .address(member.getAddress())
+                .role(member.getRole())
+                .area_range(member.getArea_range())
+                .created_at(member.getCreated_at())
+                .updated_at(member.getUpdated_at())
+                .build();
+
+
+        return response;
+    }
+
+    public List<MemberResponse> findMembers(MemberSearch memberSearch) {
+
+        return memberRepository.getList(memberSearch).stream()
+                .map(MemberResponse::new)
+                .collect(Collectors.toList());
+    }
+
+    public MemberResponse findOneOwn(MemberSession session) {
         Member member = memberRepository.findById(session.id).orElseThrow(IdNotFound::new);
 
-        if (member.getRefreshToken().equals(refreshToken)) {
+        MemberResponse response = MemberResponse.builder()
+                .id(member.getId())
+                .email(member.getEmail())
+                .username(member.getUsername())
+                .nickname(member.getNickname())
+                .phoneNumber(member.getPhoneNumber())
+                .address(member.getAddress())
+                .role(member.getRole())
+                .area_range(member.getArea_range())
+                .created_at(member.getCreated_at())
+                .updated_at(member.getUpdated_at())
+                .build();
 
-            SecretKey key = Keys.hmacShaKeyFor(appConfig.getJwtKey());
+        return response;
+    }
+    @Transactional
+    public void edit(MemberEditRequest request, Long memberId) {
+        Member member = memberRepository.findById(memberId).orElseThrow(IdNotFound::new);
 
-            long curTime = System.currentTimeMillis();
+        member.editMemberInfo(request.getNickName(), request.getPhoneNumber(), request.getAddress());
 
-            String accessTokenId = generateRandomToken();
-            System.out.println(new Date(curTime + ACCESS_TOKEN_EXPIRATION_TIME));
+        member.getArea_range().clear();
 
-            String newAccessToken = Jwts.builder()
-                    .setSubject(String.valueOf(session.id))
-                    .claim("tokenType", "access")
-                    .claim("accessTokenId", accessTokenId)
-                    .signWith(key)
-                    .setExpiration(new Date(curTime + ACCESS_TOKEN_EXPIRATION_TIME))
-                    .setIssuedAt(new Date(curTime))
-                    .compact();
-
-            return newAccessToken;
-        } else {
-            throw new IllegalArgumentException();//todo 수정해야함
+        for (String area : request.getArea_range()) {
+            member.getArea_range().add(area);
         }
     }
 
+    @Transactional
+    public void editPassword(MemberEditPasswordRequest request, Long memberId) {
+        Member member = memberRepository.findById(memberId).orElseThrow(IdNotFound::new);
 
-    public static String generateRandomToken() {
-        return UUID.randomUUID().toString();
+        if (!passwordEncoder.matches(request.getCurrentPassword(), member.getPassword())) {
+            throw new VerifyPassword(); //비밀번호 변경할 때 입력한 현재 비밀번호가 잘못 입력됌.
+        }
+        if (passwordEncoder.matches(request.getChangePassword(), member.getPassword())) {
+            throw new VerifyPassword(); //바꿀 비밀번호와 현재 비밀번호가 같으면 안됌.
+        }
+        if (!request.getChangePassword().equals(request.getConfirmedPassword())) {
+            throw new VerifyPassword(); //바꿀 비밀번호와 비밀번호 확인이 같아야함.
+        }
+
+        String changeEncryptedPassword = passwordEncoder.encrypt(request.getChangePassword());
+
+        member.changePassword(changeEncryptedPassword);
 
     }
+
+    @Transactional
+    public void delete(Long memberId) {
+        memberRepository.deleteById(memberId);
+    }
+
 }
