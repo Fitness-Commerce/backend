@@ -36,6 +36,7 @@ public class MemberApiController {
         return response;
     }
 
+
     @GetMapping("/api/members") //todo querydsl
     public List<MemberResponse> getMembers(@ModelAttribute MemberSearch memberSearch) {
         return memberService.findMembers(memberSearch);

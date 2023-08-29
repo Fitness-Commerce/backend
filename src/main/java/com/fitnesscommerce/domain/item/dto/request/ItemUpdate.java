@@ -1,27 +1,29 @@
-package com.fitnesscommerce.shop.dto.request;
+package com.fitnesscommerce.domain.item.dto.request;
 
-import com.fitnesscommerce.shop.domain.ItemImage;
+import com.fitnesscommerce.domain.item.domain.ItemStatus;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 @Getter
+@Setter
 @NoArgsConstructor
 public class ItemUpdate {
-    private Long itemCategoryId;
+    private String categoryTitle;
     private String itemName;
     private String itemDetail;
     private int itemPrice;
-    private String itemStatus;
+    private ItemStatus itemStatus;
     private List<MultipartFile> images;
 
     @Builder
-    public ItemUpdate(Long itemCategoryId, String itemName, String itemDetail,
-                      int itemPrice, String itemStatus, List<MultipartFile> images) {
-        this.itemCategoryId = itemCategoryId;
+    public ItemUpdate(String categoryTitle, String itemName, String itemDetail,
+                      int itemPrice, ItemStatus itemStatus, List<MultipartFile> images) {
+        this.categoryTitle = categoryTitle;
         this.itemName = itemName;
         this.itemDetail = itemDetail;
         this.itemPrice = itemPrice;
