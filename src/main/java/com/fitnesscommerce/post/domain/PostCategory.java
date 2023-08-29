@@ -3,26 +3,31 @@ package com.fitnesscommerce.post.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Getter
 @NoArgsConstructor
-@Table(name = "postCategory")
+@Table(name = "post_category")
 public class PostCategory extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "post_id")
-    private Long postId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_id")
+    private Post post;
 
-    @Column(name = "title")
     private String title;
 
+    private LocalDateTime createdAt;
+
     @Builder
-    public PostCategory(Long id, Long postId, String title){
+    public PostCategory(Long id, Post post, String title, LocalDateTime createdAt){
         this.id = id;
-        this.postId = postId;
+        this.post = post;
         this.title = title;
+        this.createdAt = createdAt;
     }
 }
 

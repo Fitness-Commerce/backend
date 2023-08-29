@@ -20,6 +20,7 @@ public class PostApiController {
 
     private final PostService postService;
 
+    //게시글 작성
     @PostMapping(produces = "application/json;charset=UTF-8", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<String> savePost(
@@ -27,7 +28,7 @@ public class PostApiController {
             @RequestParam Long memberId,
             @RequestParam String title,
             @RequestParam String content,
-            @RequestPart List<MultipartFile> images
+            @RequestPart(required = false) List<MultipartFile> images
     ) {
         PostCreate postCreate = PostCreate.builder()
                 .postCategoryId(postCategoryId)
@@ -40,49 +41,59 @@ public class PostApiController {
         Post createdPost = postService.savePost(postCreate);
 
         if (createdPost != null) {
-            return ResponseEntity.status(HttpStatus.CREATED).body("Post created successfully");
+            return ResponseEntity.status(HttpStatus.CREATED).body("게시글 등록 완료!");
         } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to create post");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("게시글 등록 실패!");
         }
     }
 
+    //게시글 단건 조회
     @GetMapping("/{postId}")
     @ResponseStatus(HttpStatus.CREATED)
-    public PostRes getPost(@PathVariable Long postId){
-        PostRes response = postService.findOnePost(postId);
-        return response;
+    public ResponseEntity<PostRes> findOnePost(@PathVariable Long postId){
+        postService.updateViewCount(postId);
+        PostRes postRes = postService.findOnePost(postId);
+        return ResponseEntity.ok(postRes);
     }
 
-    @GetMapping("/")
+
+    //게시글 전체 조회
+    @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<PostRes> getAllPosts() {
-        return postService.findAllPost();
+    public ResponseEntity<List<PostRes>> findAllPost(){
+        List<PostRes> postRes = postService.findAllPost();
+        return ResponseEntity.ok(postRes);
     }
 
+
+    //게시글 수정
     @PutMapping(value = "/{postId}", produces = "application/json;charset=UTF-8", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Post> updatePost(
+    public ResponseEntity<PostRes> updatePost(
             @PathVariable Long postId,
-            @RequestParam Long postCategoryId,
-            @RequestParam String title,
-            @RequestParam String content,
-            @RequestPart(required = false) List<MultipartFile> postImages
+            @RequestParam("postCategoryId") Long postCategoryId,
+            @RequestParam("title") String title,
+            @RequestParam("content") String content,
+            @RequestParam(value = "images", required = false) List<MultipartFile> images
     ) {
-        Post updatedPost = postService.updatePost(postId, postCategoryId, title, content, postImages);
-        return ResponseEntity.ok(updatedPost);
+        PostUpdate postUpdate = PostUpdate.builder()
+                .postCategoryId(postCategoryId)
+                .title(title)
+                .content(content)
+                .images(images)
+                .build();
+
+        Post updatedPost = postService.updatePost(postId, postUpdate);
+        PostRes res = postService.findOnePost(updatedPost.getId());
+
+        return ResponseEntity.ok(res);
     }
+
 
     // 게시글 삭제
     @DeleteMapping("/{postId}")
     public ResponseEntity<String> deletePost(@PathVariable Long postId) {
-        try {
-            postService.deletePost(postId);
-            return ResponseEntity.ok("Post and associated images deleted successfully.");
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Failed to delete post: " + e.getMessage());
-        }
+        postService.deletePost(postId);
+        return ResponseEntity.ok("게시글 삭제 완료");
     }
-
-
 
 }

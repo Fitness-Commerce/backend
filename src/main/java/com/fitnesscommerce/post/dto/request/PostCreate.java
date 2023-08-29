@@ -11,19 +11,19 @@ public class PostCreate { //PostRequestDTO는 POST 요청에서 클라이언트�
     private Long memberId;
     private String title;
     private String content;
-    private Long viewCount;
+    private int viewCount;
 
     // 이미지 파일들을 따로 받기 위한 필드 추가
     private List<MultipartFile> images;
 
 
     @Builder
-    public PostCreate(Long postCategoryId, Long memberId, String title, String content, Long viewCount, List<MultipartFile> images){
+    public PostCreate(Long postCategoryId, Long memberId, String title, String content, int viewCount, List<MultipartFile> images){
         this.postCategoryId = postCategoryId;
         this.memberId = memberId;
         this.title = title;
         this.content = content;
-        this.viewCount = 0L;
+        this.viewCount = 0;
         this.images = images;
     }
 

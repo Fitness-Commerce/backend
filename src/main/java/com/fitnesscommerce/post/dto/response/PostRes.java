@@ -3,6 +3,7 @@ package com.fitnesscommerce.post.dto.response;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -13,12 +14,14 @@ public class PostRes { //PostResponseDTO는 엔티티에 대한 정보를 클라
     private List<String> url;
     private String title;
     private String content;
-    private Long viewCount;
-    private int liked;
+    private int viewCount;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
 
     @Builder
     public PostRes(Long id, Long memberId, Long postCategoryId, List<String> url,
-                   String title, String content, Long viewCount, int liked) {
+                   String title, String content, int viewCount, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.memberId = memberId;
         this.postCategoryId = postCategoryId;
@@ -26,6 +29,7 @@ public class PostRes { //PostResponseDTO는 엔티티에 대한 정보를 클라
         this.title = title;
         this.content = content;
         this.viewCount = viewCount;
-        this.liked = liked;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 }

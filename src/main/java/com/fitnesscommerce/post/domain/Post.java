@@ -3,6 +3,8 @@ package com.fitnesscommerce.post.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -15,56 +17,48 @@ public class Post extends BaseTimeEntity{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "postCategory_id", referencedColumnName = "id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "postCategory_id")
     private PostCategory postCategory;
 
-    @OneToMany(mappedBy = "post", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PostImage> postImages;
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "post_id")
+    private List<PostImage> postImages = new ArrayList<>();
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostComment> comments;
 
-    @Column(name = "title") // 제목
-    private String title;
+    private String title;  // 제목
 
-    @Column(name = "content") // 내용
-    private String content;
+    private String content; // 내용
 
-    @Column(name = "viewCount") // 조회 수
-    private Long viewCount;
+    private int viewCount; // 조회 수
 
 
     @Builder
     public Post(Member member, PostCategory postCategory, List<PostImage> postImages,
-                String title, String content, Long viewCount) {
+                String title, String content, int viewCount) {
         this.member = member;
         this.postCategory = postCategory;
-        this.postImages = postImages;
+        this.postImages = (postImages != null) ? postImages : new ArrayList<>();
         this.title = title;
         this.content = content;
-        this.viewCount = 0L;
+        this.viewCount = 0;
+        this.createdAt = LocalDateTime.now();
     }
 
-    public void changePost(String title, String content, List<PostImage> postImages) {
+
+    public void changePost(PostCategory postCategory, String title, String content, List<PostImage> newImages) {
         this.title = title;
         this.content = content;
+        this.updatedAt = LocalDateTime.now();
 
-        if (this.postImages != null) {
-            // 기존의 이미지들을 제거
-            this.postImages.clear();
-        }
-
-        if (postImages != null) {
-            // 새로운 이미지들 추가
-            this.postImages.addAll(postImages);
-            for (PostImage postImage : postImages) {
-                postImage.setPost(this);
-            }
+        if (newImages != null){
+            this.postImages.addAll(newImages);
         }
     }
 }

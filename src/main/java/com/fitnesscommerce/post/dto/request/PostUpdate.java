@@ -4,24 +4,24 @@ import com.fitnesscommerce.post.domain.PostImage;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
+
 
 import java.util.List;
 
 @Getter
-@Setter
 @NoArgsConstructor
 public class PostUpdate {
     private Long postCategoryId;
-    private List<PostImage> postImages;
     private String title;
     private String content;
+    private List<MultipartFile> images;
 
     @Builder
-    public PostUpdate(Long postCategoryId, List<PostImage> postImages, String title, String content){
+    public PostUpdate(Long postCategoryId, String title, String content, List<MultipartFile> images){
         this.postCategoryId = postCategoryId;
-        this.postImages = postImages;
         this.title = title;
         this.content = content;
+        this.images = images;
     }
 }

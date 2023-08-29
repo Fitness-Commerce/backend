@@ -13,6 +13,7 @@ import com.fitnesscommerce.post.repository.PostImageRepository;
 import com.fitnesscommerce.post.repository.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -39,37 +40,40 @@ public class PostService {
 
     private final MemberRepository memberRepository;
 
-    private final String fileStorageLocation = "D:/sideproject/src/main/resources/static/file";
+    @Value("${file.storage.location}")
+    private String fileStorageLocation;
 
     // 글 작성
     @Transactional
     public Post savePost(PostCreate postCreate) {
-        Member member = memberRepository.findById(postCreate.getMemberId()).orElse(null);
-        PostCategory postCategory = postCategoryRepository.findById(postCreate.getPostCategoryId()).orElse(null);
+        Member member = memberRepository.findById(postCreate.getMemberId())
+                .orElseThrow(() -> new EntityNotFoundException("회원을 찾을 수 없습니다!"));
+
+        PostCategory postCategory = postCategoryRepository.findById(postCreate.getPostCategoryId())
+                .orElseThrow(() -> new EntityNotFoundException("해당 카테고리를 찾을 수 없습니다!"));
 
         Post post = Post.builder()
                 .member(member)
                 .postCategory(postCategory)
                 .title(postCreate.getTitle())
                 .content(postCreate.getContent())
-                .viewCount(0L)
+                .viewCount(0)
                 .build();
 
         Post savedPost = postRepository.save(post);
 
-        List<PostImage> postImages = saveImages(postCreate.getImages(), savedPost); // post 엔티티 전달
-
-        // 각 PostImage 엔티티에 대해 Post 엔티티 설정
-        for (PostImage postImage : postImages) {
-            postImage.setPost(savedPost);
+        //이미지가 null값이 아닐때 처리
+        if(postCreate.getImages() != null){  //객체의 getImages() 메서드를 호출하여 이미지 리스트를 가져옵니다.
+            List<MultipartFile> images = postCreate.getImages();
+            List<PostImage> savedImages = saveImages(images); //savedImages는 PostImage 엔티티의 리스트입니다.
+            savedPost.getPostImages().addAll(savedImages); //savedPost의 이미지 리스트(postImages)에 앞서 저장한 이미지들(savedImages)을 추가합니다. 이를 통해 게시글과 이미지들 간의 연결을 만들어줍니다.
         }
-
         return savedPost;
     }
 
 
     @Transactional
-    public List<PostImage> saveImages(List<MultipartFile> images, Post post) {
+    public List<PostImage> saveImages(List<MultipartFile> images) {
         List<PostImage> postImages = new ArrayList<>();
 
         for (MultipartFile image : images) {
@@ -83,7 +87,6 @@ public class PostService {
                 PostImage postImage = PostImage.builder()
                         .fileName(fileName)
                         .url("http://localhost:8080/api/post/images" + "/" + fileName)
-                        .post(post) // Post 엔티티 설정
                         .build();
 
                 postImages.add(postImage);
@@ -97,26 +100,21 @@ public class PostService {
 
     // 게시글 단건 조회
     @Transactional
-    public PostRes findOnePost(Long id) {
-        Post post = postRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("No Post found with id: " + id));
+    public PostRes findOnePost(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new NoSuchElementException("게시글을 찾을 수 없습니다."));
 
-        List<PostImage> postImages = postImageRepository.findByPost_Id(id);
-        List<String> imageUrls = postImages.stream()
-                .map(PostImage::getUrl)
-                .collect(Collectors.toList());
-
-        PostRes response = PostRes.builder()
+        return PostRes.builder()
                 .id(post.getId())
                 .memberId(post.getMember().getId())
                 .postCategoryId(post.getPostCategory().getId())
                 .title(post.getTitle())
                 .content(post.getContent())
+                .url(post.getPostImages().stream().map(PostImage::getUrl).collect(Collectors.toList()))
                 .viewCount(post.getViewCount())
-                .url(imageUrls) // 이미지 URL 리스트 추가
+                .createdAt(post.getCreatedAt())
+                .updatedAt(post.getUpdatedAt())
                 .build();
-
-        return response;
     }
 
     // 게시글 전체 조회
@@ -129,69 +127,108 @@ public class PostService {
                     .id(post.getId())
                     .memberId(post.getMember().getId())
                     .postCategoryId(post.getPostCategory().getId())
-                    // .postImageId() 처리는 별도로 해주어야 합니다.
-                    // 예를 들어, post.getPostImages()가 이미지의 List를 반환한다면,
-                    // 그 중 첫 번째 이미지의 ID나 원하는 이미지의 ID를 선택할 수 있습니다.
                     .title(post.getTitle())
                     .content(post.getContent())
+                    .url(post.getPostImages().stream().map(PostImage::getUrl).collect(Collectors.toList()))
                     .viewCount(post.getViewCount())
+                    .createdAt(post.getCreatedAt())
+                    .updatedAt(post.getUpdatedAt())
                     .build();
         }).collect(Collectors.toList());
     }
 
+    // 게시글 조회 수
+    @Transactional
+    public void updateViewCount(Long postId){
+        postRepository.updateViewCount(postId);
+    }
+
     //게시글 수정
     @Transactional
-    public Post updatePost(Long postId, Long postCategoryId, String title, String content, List<MultipartFile> postImages) {
-        Post postToUpdate = postRepository.findById(postId).orElse(null);
+    public Post updatePost(Long postId, PostUpdate postUpdate) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다!"));
 
-        if (postToUpdate == null) {
-            throw new EntityNotFoundException("Post not found with id: " + postId);
+        PostCategory postCategory = postCategoryRepository.findById(postUpdate.getPostCategoryId())
+                .orElseThrow(() -> new EntityNotFoundException("카테고리를 찾을 수 없습니다!"));
+
+        List<PostImage> newImages = new ArrayList<>();
+
+        //기존 PostImages 삭제
+        List<PostImage> oldPostImages = post.getPostImages();
+        if(!oldPostImages.isEmpty()){
+            deletePostImageFiles(oldPostImages); // 이미지 파일 삭제
+
+            postImageRepository.deleteAll(oldPostImages); // 이미지 레코드 삭제
+            post.getPostImages().clear(); // post 객체에서 이미지 리스트 비우기
         }
 
-        postToUpdate.changePost(title, content, null); // 이미지 업데이트는 아래에서 처리
+        //새로운 PostImage 생성 및 연결
+        List<MultipartFile> images = postUpdate.getImages();
+        if (images != null) {
+            for (MultipartFile image : images) {
+                String fileName = image.getOriginalFilename();
+                String filePath = fileStorageLocation + "/" + fileName;
 
-        if (postImages != null) {
-            List<PostImage> newImages = saveImages(postImages, postToUpdate);
+                try {
+                    Path targetLocation = Paths.get(filePath);
+                    Files.copy(image.getInputStream(), targetLocation);
+
+                    PostImage newPostImage = PostImage.builder()
+                            .fileName(fileName)
+                            .url("http://localhost:8080/api/post/images" + "/" + fileName)
+                            .build();
+                    newImages.add(newPostImage);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    // 이미지 저장 실패에 대한 로직 처리
+                }
+            }
+        }
+        // Post의 속성들 업데이트
+        post.changePost(
+                postCategory,
+                postUpdate.getTitle(),
+                postUpdate.getContent(),
+                newImages
+        );
+
+        return postRepository.save(post);
+    }
+
+    private void deletePostImageFiles(List<PostImage> itemImages) {
+        for (PostImage image : itemImages) {
+            String fileName = image.getFileName();
+            String filePath = fileStorageLocation + "/" + fileName;
+
+            try {
+                Files.deleteIfExists(Paths.get(filePath));
+            } catch (IOException e) {
+                e.printStackTrace();
+                // 파일 삭제 실패에 대한 로직 처리
+            }
         }
 
-        //List<PostImage> newImages = saveImages(postImages, postToUpdate);
-        //postToUpdate.changePost(title, content, newImages);
-
-        return postRepository.save(postToUpdate);
     }
 
 
     //게시글 삭제
     @Transactional
-    public void deletePost(Long id) {
-        Post post = postRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Post not found with id: " + id));
+    public void deletePost(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
 
         // 게시글에 연결된 이미지들을 찾습니다.
-        List<PostImage> postImages = postImageRepository.findByPost_Id(id);
+        List<PostImage> postImages = post.getPostImages();
 
         // 이미지 삭제 수행
-        for (PostImage postImage : postImages) {
-            deleteImage(postImage);
+        if (!postImages.isEmpty()) {
+            deletePostImageFiles(postImages); // 이미지 파일 삭제
+            postImageRepository.deleteAll(postImages); // 이미지 레코드 삭제
         }
 
         // 게시글 삭제
         postRepository.delete(post);
-    }
-    private void deleteImage(PostImage postImage) {
-        try {
-            // 이미지 파일 삭제
-            String fileName = postImage.getFileName();
-            String filePath = fileStorageLocation + "/" + fileName;
-            Path targetPath = Paths.get(filePath);
-            Files.deleteIfExists(targetPath);
-
-            // 이미지 엔티티 삭제
-            postImageRepository.delete(postImage);
-        } catch (IOException e) {
-            e.printStackTrace();
-            // 이미지 파일 삭제 실패에 대한 예외 처리
-        }
     }
 }
 
