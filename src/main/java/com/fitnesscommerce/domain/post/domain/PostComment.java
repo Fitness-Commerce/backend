@@ -1,4 +1,4 @@
-package com.fitnesscommerce.post.domain;
+package com.fitnesscommerce.domain.post.domain;
 
 import jakarta.persistence.*;
 import lombok.*;

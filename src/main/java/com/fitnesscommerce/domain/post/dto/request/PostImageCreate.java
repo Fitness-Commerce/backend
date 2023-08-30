@@ -1,4 +1,4 @@
-package com.fitnesscommerce.post.dto.request;
+package com.fitnesscommerce.domain.post.dto.request;
 
 import lombok.Builder;
 import lombok.Getter;

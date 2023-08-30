@@ -1,4 +1,4 @@
-package com.fitnesscommerce.post.domain;
+package com.fitnesscommerce.domain.post.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -11,7 +11,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 @Table(name = "post")
-public class Post extends BaseTimeEntity{
+public class Post{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,30 +36,33 @@ public class Post extends BaseTimeEntity{
 
     private String content; // 내용
 
-    private int viewCount; // 조회 수
+    private Integer viewCount; // 조회 수
+
+    private LocalDateTime created_at;
+
+    private LocalDateTime updated_at;
 
 
     @Builder
-    public Post(Member member, PostCategory postCategory, List<PostImage> postImages,
-                String title, String content, int viewCount) {
+    public Post(Member member, PostCategory postCategory, String title, String content, Integer viewCount) {
         this.member = member;
         this.postCategory = postCategory;
-        this.postImages = (postImages != null) ? postImages : new ArrayList<>();
         this.title = title;
         this.content = content;
         this.viewCount = 0;
-        this.createdAt = LocalDateTime.now();
+        this.created_at = LocalDateTime.now();
     }
 
 
-    public void changePost(PostCategory postCategory, String title, String content, List<PostImage> newImages) {
+    public void updatePost(PostCategory postCategory, String title, String content) {
+        this.postCategory = postCategory;
         this.title = title;
         this.content = content;
-        this.updatedAt = LocalDateTime.now();
+        this.updated_at = LocalDateTime.now();
+    }
 
-        if (newImages != null){
-            this.postImages.addAll(newImages);
-        }
+    public void addPostImage(PostImage postImage){
+        this.postImages.add(postImage);
     }
 }
 

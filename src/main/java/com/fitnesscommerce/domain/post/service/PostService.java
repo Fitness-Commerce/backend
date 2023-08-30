@@ -1,16 +1,14 @@
-package com.fitnesscommerce.post.service;
+package com.fitnesscommerce.domain.post.service;
 
-import com.fitnesscommerce.post.domain.Member;
-import com.fitnesscommerce.post.domain.Post;
-import com.fitnesscommerce.post.domain.PostCategory;
-import com.fitnesscommerce.post.domain.PostImage;
-import com.fitnesscommerce.post.dto.request.PostCreate;
-import com.fitnesscommerce.post.dto.request.PostUpdate;
-import com.fitnesscommerce.post.dto.response.PostRes;
-import com.fitnesscommerce.post.repository.MemberRepository;
-import com.fitnesscommerce.post.repository.PostCategoryRepository;
-import com.fitnesscommerce.post.repository.PostImageRepository;
-import com.fitnesscommerce.post.repository.PostRepository;
+import com.fitnesscommerce.domain.post.domain.Post;
+import com.fitnesscommerce.domain.post.domain.PostCategory;
+import com.fitnesscommerce.domain.post.domain.PostImage;
+import com.fitnesscommerce.domain.post.dto.request.PostUpdate;
+import com.fitnesscommerce.domain.post.repository.PostCategoryRepository;
+import com.fitnesscommerce.domain.post.repository.PostImageRepository;
+import com.fitnesscommerce.domain.post.repository.PostRepository;
+import com.fitnesscommerce.domain.post.dto.request.PostCreate;
+import com.fitnesscommerce.domain.post.dto.response.PostResponse;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,14 +28,12 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor // Bean 주입 -> @Autowired 대신 생성자로
+@Transactional(readOnly = true)
 public class PostService {
 
     private final PostRepository postRepository;
-
     private final PostImageRepository postImageRepository;
-
     private final PostCategoryRepository postCategoryRepository;
-
     private final MemberRepository memberRepository;
 
     @Value("${file.storage.location}")
@@ -49,7 +45,7 @@ public class PostService {
         Member member = memberRepository.findById(postCreate.getMemberId())
                 .orElseThrow(() -> new EntityNotFoundException("회원을 찾을 수 없습니다!"));
 
-        PostCategory postCategory = postCategoryRepository.findById(postCreate.getPostCategoryId())
+        PostCategory postCategory = postCategoryRepository.findByTitle(postCreate.getPostCategoryTitle())
                 .orElseThrow(() -> new EntityNotFoundException("해당 카테고리를 찾을 수 없습니다!"));
 
         Post post = Post.builder()
@@ -100,39 +96,39 @@ public class PostService {
 
     // 게시글 단건 조회
     @Transactional
-    public PostRes findOnePost(Long postId) {
+    public PostResponse findOnePost(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new NoSuchElementException("게시글을 찾을 수 없습니다."));
 
-        return PostRes.builder()
+        return PostResponse.builder()
                 .id(post.getId())
                 .memberId(post.getMember().getId())
                 .postCategoryId(post.getPostCategory().getId())
                 .title(post.getTitle())
                 .content(post.getContent())
-                .url(post.getPostImages().stream().map(PostImage::getUrl).collect(Collectors.toList()))
+                .postImageUrl(post.getPostImages().stream().map(PostImage::getUrl).collect(Collectors.toList()))
                 .viewCount(post.getViewCount())
-                .createdAt(post.getCreatedAt())
-                .updatedAt(post.getUpdatedAt())
+                .createdAt(post.getCreated_at())
+                .updatedAt(post.getUpdated_at())
                 .build();
     }
 
     // 게시글 전체 조회
     @Transactional
-    public List<PostRes> findAllPost(){
+    public List<PostResponse> findAllPost(){
         List<Post> posts = postRepository.findAll();
 
         return posts.stream().map(post -> {
-            return PostRes.builder()
+            return PostResponse.builder()
                     .id(post.getId())
                     .memberId(post.getMember().getId())
                     .postCategoryId(post.getPostCategory().getId())
                     .title(post.getTitle())
                     .content(post.getContent())
-                    .url(post.getPostImages().stream().map(PostImage::getUrl).collect(Collectors.toList()))
+                    .postImageUrl(post.getPostImages().stream().map(PostImage::getUrl).collect(Collectors.toList()))
                     .viewCount(post.getViewCount())
-                    .createdAt(post.getCreatedAt())
-                    .updatedAt(post.getUpdatedAt())
+                    .createdAt(post.getCreated_at())
+                    .updatedAt(post.getUpdated_at())
                     .build();
         }).collect(Collectors.toList());
     }
@@ -149,7 +145,7 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다!"));
 
-        PostCategory postCategory = postCategoryRepository.findById(postUpdate.getPostCategoryId())
+        PostCategory postCategory = postCategoryRepository.findByTitle(postUpdate.getPostCategoryTitle())
                 .orElseThrow(() -> new EntityNotFoundException("카테고리를 찾을 수 없습니다!"));
 
         List<PostImage> newImages = new ArrayList<>();
@@ -186,7 +182,7 @@ public class PostService {
             }
         }
         // Post의 속성들 업데이트
-        post.changePost(
+        post.updatePost(
                 postCategory,
                 postUpdate.getTitle(),
                 postUpdate.getContent(),

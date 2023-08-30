@@ -1,6 +1,6 @@
-package com.fitnesscommerce.post.repository;
+package com.fitnesscommerce.domain.post.repository;
 
-import com.fitnesscommerce.post.domain.PostImage;
+import com.fitnesscommerce.domain.post.domain.PostImage;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -8,4 +8,5 @@ import java.util.List;
 
 @Repository
 public interface PostImageRepository extends JpaRepository<PostImage, Long> {
+    List<PostImage> findByPostId(Long postId);
 }

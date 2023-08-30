@@ -1,9 +1,9 @@
-package com.fitnesscommerce.post.controller;
-import com.fitnesscommerce.post.domain.Post;
-import com.fitnesscommerce.post.dto.request.PostCreate;
-import com.fitnesscommerce.post.dto.request.PostUpdate;
-import com.fitnesscommerce.post.dto.response.PostRes;
-import com.fitnesscommerce.post.service.PostService;
+package com.fitnesscommerce.domain.post.controller;
+import com.fitnesscommerce.domain.post.domain.Post;
+import com.fitnesscommerce.domain.post.dto.request.PostUpdate;
+import com.fitnesscommerce.domain.post.service.PostService;
+import com.fitnesscommerce.domain.post.dto.request.PostCreate;
+import com.fitnesscommerce.domain.post.dto.response.PostResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -50,9 +50,9 @@ public class PostApiController {
     //게시글 단건 조회
     @GetMapping("/{postId}")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<PostRes> findOnePost(@PathVariable Long postId){
+    public ResponseEntity<PostResponse> findOnePost(@PathVariable Long postId){
         postService.updateViewCount(postId);
-        PostRes postRes = postService.findOnePost(postId);
+        PostResponse postRes = postService.findOnePost(postId);
         return ResponseEntity.ok(postRes);
     }
 
@@ -60,15 +60,15 @@ public class PostApiController {
     //게시글 전체 조회
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<List<PostRes>> findAllPost(){
-        List<PostRes> postRes = postService.findAllPost();
+    public ResponseEntity<List<PostResponse>> findAllPost(){
+        List<PostResponse> postRes = postService.findAllPost();
         return ResponseEntity.ok(postRes);
     }
 
 
     //게시글 수정
     @PutMapping(value = "/{postId}", produces = "application/json;charset=UTF-8", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<PostRes> updatePost(
+    public ResponseEntity<PostResponse> updatePost(
             @PathVariable Long postId,
             @RequestParam("postCategoryId") Long postCategoryId,
             @RequestParam("title") String title,
@@ -83,7 +83,7 @@ public class PostApiController {
                 .build();
 
         Post updatedPost = postService.updatePost(postId, postUpdate);
-        PostRes res = postService.findOnePost(updatedPost.getId());
+        PostResponse res = postService.findOnePost(updatedPost.getId());
 
         return ResponseEntity.ok(res);
     }
