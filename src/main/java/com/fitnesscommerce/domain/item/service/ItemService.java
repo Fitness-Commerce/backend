@@ -17,6 +17,10 @@ import com.fitnesscommerce.domain.member.repository.MemberRepository;
 import com.fitnesscommerce.global.config.data.MemberSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -43,7 +47,7 @@ public class ItemService  {
     private String fileStorageLocation;
 
     @Transactional
-    public void save(ItemCreate itemCreate, MemberSession session) throws IOException {
+    public Long save(ItemCreate itemCreate, MemberSession session) throws IOException {
 
         Member member = memberRepository.findById(session.id)
                 .orElseThrow(IdNotFound::new);
@@ -58,7 +62,7 @@ public class ItemService  {
                 .itemPrice(itemCreate.getItemPrice())
                 .build();
 
-        itemRepository.save(item); //아이템 저장
+        Item saveItemd = itemRepository.save(item); //아이템 저장
         //itemimage - null
 
         for (MultipartFile image : itemCreate.getImages()) {
@@ -81,6 +85,8 @@ public class ItemService  {
 
             item.addItemImage(itemImage);//아이템에 이미지 저장
         }
+
+        return saveItemd.getId();
 
     }
 
@@ -109,30 +115,36 @@ public class ItemService  {
                 .build();
     }
 
-    //pagenation
-    public List<ItemResponse> getAllItemResponses() {
-        List<Item> items = itemRepository.findAll();
 
-        return items.stream()
-                .map(item -> ItemResponse.builder()
-                        .id(item.getId())
-                        .memberId(item.getMember().getId())
-                        .itemCategoryId(item.getItemCategory().getId())
-                        .itemName(item.getItemName())
-                        .itemDetail(item.getItemDetail())
-                        .itemPrice(item.getItemPrice())
-                        .itemStatus(item.getItemStatus())
-                        .itemImagesUrl(item.getItemImages().stream().map(ItemImage::getUrl).collect(Collectors.toList()))
-                        .viewCount(item.getViewCount())
-                        .created_at(item.getCreated_at())
-                        .updated_at(item.getUpdated_at())
-                        .build())
-                .collect(Collectors.toList());
+    @Transactional
+    public Page<ItemResponse> getAllItemPaging(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Item> itemsPage = itemRepository.findAll(pageable);
+
+        Page<ItemResponse> itemResponsesPage = itemsPage.map(this::mapItemToResponse);
+
+        return PageableExecutionUtils.getPage(itemResponsesPage.getContent(), pageable, itemsPage::getTotalElements);
+    }
+
+    private ItemResponse mapItemToResponse(Item item) {
+        return ItemResponse.builder()
+                .id(item.getId())
+                .memberId(item.getMember().getId())
+                .itemCategoryId(item.getItemCategory().getId())
+                .itemName(item.getItemName())
+                .itemDetail(item.getItemDetail())
+                .itemPrice(item.getItemPrice())
+                .itemStatus(item.getItemStatus())
+                .itemImagesUrl(item.getItemImages().stream().map(ItemImage::getUrl).collect(Collectors.toList()))
+                .viewCount(item.getViewCount())
+                .created_at(item.getCreated_at())
+                .updated_at((item.getUpdated_at()))
+                .build();
     }
 
 
     @Transactional
-    public void updateItem(Long itemId, ItemUpdate request) throws IOException {
+    public Long updateItem(Long itemId, ItemUpdate request) throws IOException {
         Item item = itemRepository.findById(itemId).orElseThrow(ItemNotFound::new);
         ItemCategory itemCategory = itemCategoryRepository.findByTitle(request.getCategoryTitle())
                 .orElseThrow(ItemCategoryNotFound::new);
@@ -174,6 +186,8 @@ public class ItemService  {
 
             item.addItemImage(itemImage);//아이템에 이미지 저장
         }
+
+        return item.getId();
 
     }
 

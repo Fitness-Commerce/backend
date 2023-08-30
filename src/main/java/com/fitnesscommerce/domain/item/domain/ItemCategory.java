@@ -22,6 +22,7 @@ public class ItemCategory {
     @OneToMany(mappedBy = "itemCategory", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Item> items = new ArrayList<>();
 
+
     private String title;
 
     private LocalDateTime created_at;

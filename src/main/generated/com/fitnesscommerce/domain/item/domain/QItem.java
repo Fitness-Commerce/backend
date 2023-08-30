@@ -22,6 +22,8 @@ public class QItem extends EntityPathBase<Item> {
 
     public static final QItem item = new QItem("item");
 
+    public final ListPath<ItemComment, QItemComment> comments = this.<ItemComment, QItemComment>createList("comments", ItemComment.class, QItemComment.class, PathInits.DIRECT2);
+
     public final DateTimePath<java.time.LocalDateTime> created_at = createDateTime("created_at", java.time.LocalDateTime.class);
 
     public final NumberPath<Long> id = createNumber("id", Long.class);

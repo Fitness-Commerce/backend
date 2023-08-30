@@ -30,8 +30,8 @@ public class Item {
     @JoinColumn(name = "item_category_id")
     private ItemCategory itemCategory;
 
-//    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<ItemComment> comments = new ArrayList<>();
+    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ItemComment> comments = new ArrayList<>();
 
     private String itemName;
 

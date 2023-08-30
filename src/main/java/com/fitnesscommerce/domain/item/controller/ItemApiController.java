@@ -6,6 +6,8 @@ import com.fitnesscommerce.domain.item.dto.response.ItemResponse;
 import com.fitnesscommerce.domain.item.service.ItemService;
 import com.fitnesscommerce.global.config.data.MemberSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,35 +22,38 @@ public class ItemApiController {
     private final ItemService itemService;
 
     @PostMapping("/api/items")
-    public ResponseEntity saveItem(@ModelAttribute ItemCreate itemCreate,
-                                   MemberSession session) throws IOException {
-        itemService.save(itemCreate, session);
-
-        return ResponseEntity.created(URI.create("/api/items")).build();
+    public ResponseEntity<Long> saveItem(@ModelAttribute ItemCreate itemCreate,
+                                           MemberSession session) throws IOException {
+        return ResponseEntity.ok(itemService.save(itemCreate, session));
     }
 
     @GetMapping("/api/items/{itemId}")
     public ItemResponse getItemById(@PathVariable Long itemId) {
         itemService.updateViewCount(itemId);
-        ItemResponse response = itemService.getItemResponseById(itemId);
 
-        return response;
+        return itemService.getItemResponseById(itemId);
     }
 
-    @GetMapping("/api/items") //pagenation 추가 해주세요
-    public ResponseEntity<List<ItemResponse>> getAllItems() {
-        List<ItemResponse> itemResponses = itemService.getAllItemResponses();
-        return ResponseEntity.ok(itemResponses);
+    @GetMapping("/api/items")
+    public ResponseEntity<Page<ItemResponse>> getAllItemsWithPaging(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<ItemResponse> itemResponsesPage = itemService.getAllItemPaging(page, size);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Previous-Page", itemResponsesPage.hasPrevious() ? itemResponsesPage.previousPageable().getPageNumber() + "" : "");
+        headers.add("Next-Page", itemResponsesPage.hasNext() ? itemResponsesPage.nextPageable().getPageNumber() + "" : "");
+
+        return ResponseEntity.ok().headers(headers).body(itemResponsesPage);
     }
 
     @PutMapping("/api/items/{itemId}")
-    public ResponseEntity updateItem(@PathVariable Long itemId,
+    public ResponseEntity<Long> updateItem(@PathVariable Long itemId,
                                      @ModelAttribute ItemUpdate itemUpdate,
                                      MemberSession session) throws IOException {
 
-        itemService.updateItem(itemId,itemUpdate);
-
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(itemService.updateItem(itemId,itemUpdate));
     }
 
     @DeleteMapping("/api/items/{itemId}")
