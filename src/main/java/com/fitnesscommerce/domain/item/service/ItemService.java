@@ -81,11 +81,12 @@ public class ItemService  {
                         .item(item)
                         .build();
 
-                itemImageRepository.save(itemImage); //이미지 저장
-
                 item.addItemImage(itemImage);//아이템에 이미지 저장
+
+                itemImageRepository.save(itemImage); //이미지 저장
             }
         }
+
 
         itemCategory.addItem(item);
 
@@ -148,33 +149,36 @@ public class ItemService  {
 
     @Transactional
     public Long updateItem(Long itemId, ItemUpdate request) throws IOException {
+        // 수정할 Item을 조회합니다.
         Item item = itemRepository.findById(itemId).orElseThrow(ItemNotFound::new);
+
+        // 수정할 Item의 새로운 카테고리를 찾습니다.
         ItemCategory itemCategory = itemCategoryRepository.findByTitle(request.getCategoryTitle())
                 .orElseThrow(ItemCategoryNotFound::new);
 
-        if(item.getItemCategory().getTitle().equals(request.getCategoryTitle()))  //카테고리 변경되었다면 카테고리에서 item데이터삭제
-            item.getItemCategory().removeItem(item);
-
+        // Item의 속성을 업데이트합니다.
         item.update(itemCategory, request.getItemName(), request.getItemDetail(),
                 request.getItemPrice(), request.getItemStatus());
 
-        //기존 itemImageRepository의 itemId가 같은 image데이터 삭제
+        // 기존 이미지들을 삭제하고 Item의 이미지 컬렉션을 초기화합니다.
         List<ItemImage> byItemId = itemImageRepository.findByItemId(item.getId());
-
-        for (ItemImage itemImage : byItemId) {
-
-            String fileName = itemImage.getFileName();
-            String filePath = fileStorageLocation + "/" + fileName;
-            Path targetLocation = Paths.get(filePath);
-            Files.deleteIfExists(targetLocation);
-
+        if (byItemId != null) {
+            for (ItemImage itemImage : byItemId) {
+                String fileName = itemImage.getFileName();
+                String filePath = fileStorageLocation + "/" + fileName;
+                Path targetLocation = Paths.get(filePath);
+                Files.deleteIfExists(targetLocation);
+                itemImageRepository.delete(itemImage);
+            }
         }
-
         item.getItemImages().clear();
 
-        if(request.getImages() != null){
-            for (MultipartFile image : request.getImages()) {
+        // 기존 카테고리에서 Item을 제거합니다.
+        item.getItemCategory().removeItem(item);
 
+        // 새로운 이미지를 저장합니다.
+        if (request.getImages() != null) {
+            for (MultipartFile image : request.getImages()) {
                 String originalFileName = image.getOriginalFilename();
                 String extension = originalFileName.substring(originalFileName.lastIndexOf("."));
                 String fileName = UUID.randomUUID().toString() + extension;
@@ -189,14 +193,16 @@ public class ItemService  {
                         .item(item)
                         .build();
 
-                itemImageRepository.save(itemImage); //이미지 저장
+                item.addItemImage(itemImage);
+                itemImageRepository.save(itemImage);
 
-                item.addItemImage(itemImage);//아이템에 이미지 저장
             }
         }
 
-        itemCategory.addItem(item);  //카테고리에 수정한 상품 저장
+        // 새로운 카테고리에 Item을 추가합니다.
+        itemCategory.addItem(item);
 
+        // 업데이트된 Item의 ID를 반환합니다.
         return item.getId();
 
     }
