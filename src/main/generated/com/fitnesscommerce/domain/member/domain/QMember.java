@@ -32,6 +32,8 @@ public class QMember extends EntityPathBase<Member> {
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
+    public final ListPath<com.fitnesscommerce.domain.item.domain.Item, com.fitnesscommerce.domain.item.domain.QItem> items = this.<com.fitnesscommerce.domain.item.domain.Item, com.fitnesscommerce.domain.item.domain.QItem>createList("items", com.fitnesscommerce.domain.item.domain.Item.class, com.fitnesscommerce.domain.item.domain.QItem.class, PathInits.DIRECT2);
+
     public final StringPath nickname = createString("nickname");
 
     public final StringPath password = createString("password");

@@ -1,9 +1,8 @@
-package com.fitnesscommerce.shop.dto.request;
-
+package com.fitnesscommerce.domain.item.dto.request;
 
 import lombok.Builder;
-        import lombok.Getter;
-        import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor

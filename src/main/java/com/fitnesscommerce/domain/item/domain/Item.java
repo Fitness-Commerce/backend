@@ -1,28 +1,33 @@
-package com.fitnesscommerce.shop.domain;
+package com.fitnesscommerce.domain.item.domain;
 
 import com.fitnesscommerce.domain.member.domain.Member;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "item")
 @Getter
 @NoArgsConstructor
-public class Item extends BaseEntity {
+public class Item {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "item_id")
+    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ItemImage> itemImages = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "itemCategory_id")
+    @JoinColumn(name = "item_category_id")
     private ItemCategory itemCategory;
 
     @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -34,36 +39,40 @@ public class Item extends BaseEntity {
 
     private Integer itemPrice;
 
-    private String itemStatus;
+    @Enumerated(EnumType.STRING)
+    private ItemStatus itemStatus;
 
     private Integer viewCount;
 
+    private LocalDateTime created_at;
+
+    private LocalDateTime updated_at;
+
     @Builder
-    public Item(Member member, List<ItemImage> itemImages, ItemCategory itemCategory,
-                String itemName, String itemDetail, Integer itemPrice, String itemStatus, Integer viewCount) {
+    public Item(Member member, ItemCategory itemCategory,
+                String itemName, String itemDetail, Integer itemPrice, Integer viewCount) {
         this.member = member;
-        this.itemImages = (itemImages != null) ? itemImages : new ArrayList<>();
         this.itemCategory = itemCategory;
         this.itemName = itemName;
         this.itemDetail = itemDetail;
         this.itemPrice = itemPrice;
-        this.itemStatus = itemStatus;
-        this.createdAt = LocalDateTime.now();
+        this.itemStatus = ItemStatus.SELLING;
+        this.created_at = LocalDateTime.now();
         this.viewCount = 0;
     }
 
-    public void change(ItemCategory itemCategory, String itemName, String itemDetail,
-                       Integer itemPrice, String itemStatus, List<ItemImage> newImages) {
+    public void update(ItemCategory itemCategory, String itemName, String itemDetail,
+                       Integer itemPrice, ItemStatus itemStatus) {
         this.itemCategory = itemCategory;
         this.itemName = itemName;
         this.itemDetail = itemDetail;
         this.itemPrice = itemPrice;
         this.itemStatus = itemStatus;
-        this.updatedAt = LocalDateTime.now();
+        this.updated_at = LocalDateTime.now();
 
-        if (newImages != null) {
-            this.itemImages.addAll(newImages);
-        }
+    }
 
+    public void addItemImage(ItemImage itemImage) {
+        this.itemImages.add(itemImage);
     }
 }

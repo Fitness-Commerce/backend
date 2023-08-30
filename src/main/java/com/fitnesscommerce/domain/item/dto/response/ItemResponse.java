@@ -1,5 +1,6 @@
-package com.fitnesscommerce.shop.dto.response;
+package com.fitnesscommerce.domain.item.dto.response;
 
+import com.fitnesscommerce.domain.item.domain.ItemStatus;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -11,11 +12,11 @@ public class ItemResponse {
 
     private Long id;
     private Long memberId;
-    private Long itemCategoryId;
+    private Long itemCategoryId; //itemCategoryTitle?
     private String itemName;
     private String itemDetail;
     private int itemPrice;
-    private String itemStatus;
+    private ItemStatus itemStatus;
     private List<String> itemImagesUrl;
     private int viewCount;
     private LocalDateTime createdAt;
@@ -23,9 +24,9 @@ public class ItemResponse {
 
     @Builder
     public ItemResponse(Long id, Long memberId, Long itemCategoryId, String itemName,
-                        String itemDetail, int itemPrice, String itemStatus,
+                        String itemDetail, int itemPrice, ItemStatus itemStatus,
                         List<String> itemImagesUrl, int viewCount,
-                        LocalDateTime createdAt,LocalDateTime updatedAt) {
+                        LocalDateTime created_at,LocalDateTime updated_at) {
         this.id = id;
         this.memberId = memberId;
         this.itemCategoryId = itemCategoryId;
@@ -35,7 +36,8 @@ public class ItemResponse {
         this.itemStatus = itemStatus;
         this.itemImagesUrl = itemImagesUrl;
         this.viewCount = viewCount;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
+        this.createdAt = created_at;
+        this.updatedAt = updated_at;
     }
 }
+
