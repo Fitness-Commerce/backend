@@ -116,7 +116,7 @@ public class ItemService  {
     }
 
 
-    @Transactional
+
     public Page<ItemResponse> getAllItemPaging(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Item> itemsPage = itemRepository.findAll(pageable);
