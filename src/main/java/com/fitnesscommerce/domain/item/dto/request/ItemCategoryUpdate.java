@@ -7,7 +7,6 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class ItemCategoryCreate {
-
+public class ItemCategoryUpdate {
     private String title;
 }

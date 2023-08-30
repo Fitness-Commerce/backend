@@ -63,28 +63,31 @@ public class ItemService  {
                 .build();
 
         Item saveItemd = itemRepository.save(item); //아이템 저장
-        //itemimage - null
 
-        for (MultipartFile image : itemCreate.getImages()) {
+        if(itemCreate.getImages() != null){
+            for (MultipartFile image : itemCreate.getImages()) {
 
-            String originalFileName = image.getOriginalFilename();
-            String extension = originalFileName.substring(originalFileName.lastIndexOf("."));
-            String fileName = UUID.randomUUID().toString() + extension;
-            String filePath = fileStorageLocation + "/" + fileName;
+                String originalFileName = image.getOriginalFilename();
+                String extension = originalFileName.substring(originalFileName.lastIndexOf("."));
+                String fileName = UUID.randomUUID().toString() + extension;
+                String filePath = fileStorageLocation + "/" + fileName;
 
-            Path targetLocation = Paths.get(filePath);
-            Files.copy(image.getInputStream(), targetLocation);
+                Path targetLocation = Paths.get(filePath);
+                Files.copy(image.getInputStream(), targetLocation);
 
-            ItemImage itemImage = ItemImage.builder()
-                    .fileName(fileName)
-                    .url("http://localhost:8080/api/item/images" + "/" + fileName)
-                    .item(item)
-                    .build();
+                ItemImage itemImage = ItemImage.builder()
+                        .fileName(fileName)
+                        .url("http://localhost:8080/api/item/images" + "/" + fileName)
+                        .item(item)
+                        .build();
 
-            itemImageRepository.save(itemImage); //이미지 저장
+                itemImageRepository.save(itemImage); //이미지 저장
 
-            item.addItemImage(itemImage);//아이템에 이미지 저장
+                item.addItemImage(itemImage);//아이템에 이미지 저장
+            }
         }
+
+        itemCategory.addItem(item);
 
         return saveItemd.getId();
 
@@ -126,7 +129,7 @@ public class ItemService  {
         return PageableExecutionUtils.getPage(itemResponsesPage.getContent(), pageable, itemsPage::getTotalElements);
     }
 
-    private ItemResponse mapItemToResponse(Item item) {
+    public ItemResponse mapItemToResponse(Item item) {
         return ItemResponse.builder()
                 .id(item.getId())
                 .memberId(item.getMember().getId())
@@ -149,6 +152,9 @@ public class ItemService  {
         ItemCategory itemCategory = itemCategoryRepository.findByTitle(request.getCategoryTitle())
                 .orElseThrow(ItemCategoryNotFound::new);
 
+        if(item.getItemCategory().getTitle().equals(request.getCategoryTitle()))  //카테고리 변경되었다면 카테고리에서 item데이터삭제
+            item.getItemCategory().removeItem(item);
+
         item.update(itemCategory, request.getItemName(), request.getItemDetail(),
                 request.getItemPrice(), request.getItemStatus());
 
@@ -166,26 +172,30 @@ public class ItemService  {
 
         item.getItemImages().clear();
 
-        for (MultipartFile image : request.getImages()) {
+        if(request.getImages() != null){
+            for (MultipartFile image : request.getImages()) {
 
-            String originalFileName = image.getOriginalFilename();
-            String extension = originalFileName.substring(originalFileName.lastIndexOf("."));
-            String fileName = UUID.randomUUID().toString() + extension;
-            String filePath = fileStorageLocation + "/" + fileName;
+                String originalFileName = image.getOriginalFilename();
+                String extension = originalFileName.substring(originalFileName.lastIndexOf("."));
+                String fileName = UUID.randomUUID().toString() + extension;
+                String filePath = fileStorageLocation + "/" + fileName;
 
-            Path targetLocation = Paths.get(filePath);
-            Files.copy(image.getInputStream(), targetLocation);
+                Path targetLocation = Paths.get(filePath);
+                Files.copy(image.getInputStream(), targetLocation);
 
-            ItemImage itemImage = ItemImage.builder()
-                    .fileName(fileName)
-                    .url("http://localhost:8080/api/item/images" + "/" + fileName)
-                    .item(item)
-                    .build();
+                ItemImage itemImage = ItemImage.builder()
+                        .fileName(fileName)
+                        .url("http://localhost:8080/api/item/images" + "/" + fileName)
+                        .item(item)
+                        .build();
 
-            itemImageRepository.save(itemImage); //이미지 저장
+                itemImageRepository.save(itemImage); //이미지 저장
 
-            item.addItemImage(itemImage);//아이템에 이미지 저장
+                item.addItemImage(itemImage);//아이템에 이미지 저장
+            }
         }
+
+        itemCategory.addItem(item);  //카테고리에 수정한 상품 저장
 
         return item.getId();
 
@@ -205,6 +215,9 @@ public class ItemService  {
             Files.deleteIfExists(targetLocation);
 
         }
+
+        ItemCategory category = item.getItemCategory();
+        category.removeItem(item); // 카테고리에서 상품 제거
 
         itemRepository.delete(item);
     }
