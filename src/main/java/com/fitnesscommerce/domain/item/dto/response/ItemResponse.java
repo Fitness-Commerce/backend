@@ -17,6 +17,7 @@ public class ItemResponse {
     private String itemDetail;
     private int itemPrice;
     private ItemStatus itemStatus;
+    private Long buyerID;
     private List<String> itemImagesUrl;
     private int viewCount;
     private LocalDateTime createdAt;
@@ -24,7 +25,7 @@ public class ItemResponse {
 
     @Builder
     public ItemResponse(Long id, Long memberId, Long itemCategoryId, String itemName,
-                        String itemDetail, int itemPrice, ItemStatus itemStatus,
+                        String itemDetail, int itemPrice, ItemStatus itemStatus, Long buyerID,
                         List<String> itemImagesUrl, int viewCount,
                         LocalDateTime created_at,LocalDateTime updated_at) {
         this.id = id;
@@ -34,6 +35,7 @@ public class ItemResponse {
         this.itemDetail = itemDetail;
         this.itemPrice = itemPrice;
         this.itemStatus = itemStatus;
+        this.buyerID = buyerID;
         this.itemImagesUrl = itemImagesUrl;
         this.viewCount = viewCount;
         this.createdAt = created_at;

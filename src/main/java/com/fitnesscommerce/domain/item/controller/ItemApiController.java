@@ -1,7 +1,9 @@
 package com.fitnesscommerce.domain.item.controller;
 
 import com.fitnesscommerce.domain.item.dto.request.ItemCreate;
+import com.fitnesscommerce.domain.item.dto.request.ItemStatusUpdate;
 import com.fitnesscommerce.domain.item.dto.request.ItemUpdate;
+import com.fitnesscommerce.domain.item.dto.response.CustomItemPageResponse;
 import com.fitnesscommerce.domain.item.dto.response.ItemResponse;
 import com.fitnesscommerce.domain.item.service.ItemService;
 import com.fitnesscommerce.global.config.data.MemberSession;
@@ -35,17 +37,15 @@ public class ItemApiController {
     }
 
     @GetMapping("/api/items")
-    public ResponseEntity<Page<ItemResponse>> getAllItemsWithPaging(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
-    ) {
-        Page<ItemResponse> itemResponsesPage = itemService.getAllItemPaging(page, size);
+    public ResponseEntity<CustomItemPageResponse> getAllItemPaging(
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestHeader(value = "Authorization", required = false) String accessToken,
+            @RequestParam(value = "search", required = false) String search,
+            @RequestParam(value = "orderBy", defaultValue = "id") String orderBy,
+            @RequestParam(value = "direction", defaultValue = "DESC") String direction) {
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Previous-Page", itemResponsesPage.hasPrevious() ? itemResponsesPage.previousPageable().getPageNumber() + "" : "");
-        headers.add("Next-Page", itemResponsesPage.hasNext() ? itemResponsesPage.nextPageable().getPageNumber() + "" : "");
-
-        return ResponseEntity.ok().headers(headers).body(itemResponsesPage);
+        return ResponseEntity.ok(itemService.getAllItemPaging(page, size, accessToken, search, orderBy, direction));
     }
 
     @PutMapping("/api/items/{itemId}")
@@ -53,15 +53,21 @@ public class ItemApiController {
                                      @ModelAttribute ItemUpdate itemUpdate,
                                      MemberSession session) throws IOException {
 
-        return ResponseEntity.ok(itemService.updateItem(itemId,itemUpdate));
+        return ResponseEntity.ok(itemService.updateItem(itemId,itemUpdate,session));
     }
 
     @DeleteMapping("/api/items/{itemId}")
-    public ResponseEntity deleteItem(@PathVariable Long itemId) throws IOException {
-        itemService.delete(itemId);
+    public ResponseEntity deleteItem(@PathVariable Long itemId,MemberSession session) throws IOException {
+        itemService.delete(itemId,session);
 
         return ResponseEntity.ok().build();
     }
 
+    @PutMapping("/api/items/updateStatus")
+    public void updateItem(@RequestBody ItemStatusUpdate itemStatusUpdate,
+                           MemberSession session) throws IOException {
+
+        itemService.updateItemStatus(itemStatusUpdate,session);
+    }
 
 }
