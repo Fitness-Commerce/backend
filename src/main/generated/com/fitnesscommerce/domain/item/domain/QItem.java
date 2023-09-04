@@ -22,6 +22,8 @@ public class QItem extends EntityPathBase<Item> {
 
     public static final QItem item = new QItem("item");
 
+    public final com.fitnesscommerce.domain.member.domain.QMember buyer;
+
     public final ListPath<ItemComment, QItemComment> comments = this.<ItemComment, QItemComment>createList("comments", ItemComment.class, QItemComment.class, PathInits.DIRECT2);
 
     public final DateTimePath<java.time.LocalDateTime> created_at = createDateTime("created_at", java.time.LocalDateTime.class);
@@ -64,6 +66,7 @@ public class QItem extends EntityPathBase<Item> {
 
     public QItem(Class<? extends Item> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
+        this.buyer = inits.isInitialized("buyer") ? new com.fitnesscommerce.domain.member.domain.QMember(forProperty("buyer"), inits.get("buyer")) : null;
         this.itemCategory = inits.isInitialized("itemCategory") ? new QItemCategory(forProperty("itemCategory")) : null;
         this.member = inits.isInitialized("member") ? new com.fitnesscommerce.domain.member.domain.QMember(forProperty("member"), inits.get("member")) : null;
     }

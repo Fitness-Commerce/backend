@@ -41,6 +41,8 @@ public class ItemComment {
     }
 
     public void updateComment(String content){
+
         this.content = content;
+        this.updated_at = LocalDateTime.now();
     }
 }
