@@ -17,17 +17,15 @@ public class ItemUpdate {
     private String itemName;
     private String itemDetail;
     private int itemPrice;
-    private ItemStatus itemStatus;
     private List<MultipartFile> images;
 
     @Builder
     public ItemUpdate(String categoryTitle, String itemName, String itemDetail,
-                      int itemPrice, ItemStatus itemStatus, List<MultipartFile> images) {
+                      int itemPrice, List<MultipartFile> images) {
         this.categoryTitle = categoryTitle;
         this.itemName = itemName;
         this.itemDetail = itemDetail;
         this.itemPrice = itemPrice;
-        this.itemStatus = itemStatus;
         this.images = images;
     }
 }

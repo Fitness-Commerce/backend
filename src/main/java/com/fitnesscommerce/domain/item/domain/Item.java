@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -12,6 +13,7 @@ import java.util.List;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 public class Item {
 
@@ -42,6 +44,10 @@ public class Item {
     @Enumerated(EnumType.STRING)
     private ItemStatus itemStatus;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "buyer_id")
+    private Member buyer;
+
     private Integer viewCount;
 
     private LocalDateTime created_at;
@@ -50,29 +56,39 @@ public class Item {
 
     @Builder
     public Item(Member member, ItemCategory itemCategory,
-                String itemName, String itemDetail, Integer itemPrice, Integer viewCount) {
+                String itemName, String itemDetail, Integer itemPrice) {
         this.member = member;
         this.itemCategory = itemCategory;
         this.itemName = itemName;
         this.itemDetail = itemDetail;
         this.itemPrice = itemPrice;
         this.itemStatus = ItemStatus.SELLING;
+        this.buyer = null;
         this.created_at = LocalDateTime.now();
         this.viewCount = 0;
     }
 
     public void update(ItemCategory itemCategory, String itemName, String itemDetail,
-                       Integer itemPrice, ItemStatus itemStatus) {
+                       Integer itemPrice) {
         this.itemCategory = itemCategory;
         this.itemName = itemName;
         this.itemDetail = itemDetail;
         this.itemPrice = itemPrice;
-        this.itemStatus = itemStatus;
         this.updated_at = LocalDateTime.now();
+    }
 
+    public void updateItemStatus(Long id, ItemStatus itemStatus, Member buyer){
+        this.id = id;
+        this.itemStatus = itemStatus;
+        this.buyer = buyer;
     }
 
     public void addItemImage(ItemImage itemImage) {
         this.itemImages.add(itemImage);
     }
+
+    public void addItemComment(ItemComment itemComment) {this.comments.add(itemComment); }
+
+    public void removeItemComment(ItemComment itemComment) {this.comments.remove(itemComment); }
+
 }

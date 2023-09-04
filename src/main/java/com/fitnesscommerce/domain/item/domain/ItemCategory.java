@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -12,6 +13,7 @@ import java.util.List;
 @Entity
 @Table(name = "item_category")
 @Getter
+@Setter
 @NoArgsConstructor
 public class ItemCategory {
 
@@ -21,7 +23,6 @@ public class ItemCategory {
 
     @OneToMany(mappedBy = "itemCategory", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Item> items = new ArrayList<>();
-
 
     private String title;
 
@@ -34,4 +35,13 @@ public class ItemCategory {
         this.title = title;
         this.created_at = LocalDateTime.now();
     }
+
+    public void updateCategory(String title){
+        this.title = title;
+        this.updated_at = LocalDateTime.now();
+    }
+
+    public void addItem(Item item) {this.items.add(item);}
+
+    public void removeItem(Item item) {this.items.remove(item);}
 }
