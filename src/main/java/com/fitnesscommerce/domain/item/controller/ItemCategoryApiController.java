@@ -2,6 +2,7 @@ package com.fitnesscommerce.domain.item.controller;
 
 import com.fitnesscommerce.domain.item.dto.request.ItemCategoryCreate;
 import com.fitnesscommerce.domain.item.dto.request.ItemCategoryUpdate;
+import com.fitnesscommerce.domain.item.dto.response.CustomItemPageResponse;
 import com.fitnesscommerce.domain.item.dto.response.ItemCategoryResponse;
 import com.fitnesscommerce.domain.item.dto.response.ItemResponse;
 import com.fitnesscommerce.domain.item.service.ItemCategoryService;
@@ -35,11 +36,14 @@ public class ItemCategoryApiController {
         return ResponseEntity.ok(categories);
     }
 
-    @GetMapping("/api/category/{categoryId}/items")
-    public Page<ItemResponse> getItemsByCategoryPaging(
+    @GetMapping("/api/categories/{categoryId}/items")
+    public ResponseEntity<CustomItemPageResponse> getItemsByCategoryPaging(
             @PathVariable Long categoryId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return itemCategoryService.getItemsByCategoryPaging(categoryId, page, size);
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String orderBy,
+            @RequestParam(defaultValue = "DESC") String direction) {
+
+        return ResponseEntity.ok(itemCategoryService.getItemsByCategoryPaging(categoryId, page, size, orderBy, direction));
     }
 }
