@@ -19,7 +19,7 @@ public class PostCategoryApiController {
 
     //게시판 생성
     @PostMapping("/api/postCategories")
-    public ResponseEntity<Long> saveCategoryPost(@ModelAttribute PostCategoryCreate postCategoryCreate){
+    public ResponseEntity<Long> saveCategoryPost(@RequestBody PostCategoryCreate postCategoryCreate){
         return ResponseEntity.ok(postCategoryService.createCategory(postCategoryCreate));
     }
 
