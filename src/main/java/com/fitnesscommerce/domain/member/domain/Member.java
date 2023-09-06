@@ -1,6 +1,8 @@
 package com.fitnesscommerce.domain.member.domain;
 
+import com.fitnesscommerce.domain.chat.domain.ChatRoom;
 import com.fitnesscommerce.domain.item.domain.Item;
+import com.fitnesscommerce.domain.post.domain.Post;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -36,12 +38,8 @@ public class Member {
     private Address address;
 
     @ElementCollection
-
     @Column(name = "area_range")
     private List<String> area_range = new ArrayList<>();
-
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Item> items = new ArrayList<>();
 
     private LocalDateTime created_at;
 
