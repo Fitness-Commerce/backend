@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 public class MemberEditRequest {
 
-    private String nickName;
+    private String nickname;
     private String phoneNumber;
     private Address address;
     private String[] area_range;
