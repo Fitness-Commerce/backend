@@ -15,9 +15,12 @@ public class ItemCommentResponse {
     private LocalDateTime created_at;
     private LocalDateTime updated_at;
 
+    //작성자 nickName
+    private String nickName;
+
     @Builder
     public ItemCommentResponse(Long id, Long itemId, Long memberId, String content,
-                               LocalDateTime created_at, LocalDateTime updated_at){
+                               LocalDateTime created_at, LocalDateTime updated_at, String nickName){
 
         this.id = id;
         this.itemId = itemId;
@@ -25,5 +28,6 @@ public class ItemCommentResponse {
         this.content = content;
         this.created_at = created_at;
         this.updated_at = updated_at;
+        this.nickName = nickName;
     }
 }

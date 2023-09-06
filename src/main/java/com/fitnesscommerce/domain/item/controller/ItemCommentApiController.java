@@ -11,6 +11,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequiredArgsConstructor
 public class ItemCommentApiController {
@@ -18,14 +20,14 @@ public class ItemCommentApiController {
     private final ItemCommentService itemCommentService;
 
     @PostMapping("/api/items/{itemId}/comments")
-    public ResponseEntity<Long> createComment(@RequestBody ItemCommentCreate request,
-                                              @PathVariable Long itemId,MemberSession session) {
+    public ResponseEntity<Map<String, Long>> createComment(@RequestBody ItemCommentCreate request,
+                                                           @PathVariable Long itemId, MemberSession session) {
 
         return ResponseEntity.ok(itemCommentService.createComment(request, session, itemId));
     }
 
     @PutMapping("/api/items/{itemId}/comments/{commentId}")
-    public ResponseEntity<Long> updateComment(@RequestBody ItemCommentUpdate request,
+    public ResponseEntity<Map<String, Long>> updateComment(@RequestBody ItemCommentUpdate request,
                                               @PathVariable Long itemId,
                                               @PathVariable Long commentId,MemberSession session) {
         return ResponseEntity.ok(itemCommentService.updateComment(request, itemId, commentId,session));

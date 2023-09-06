@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,8 +25,8 @@ public class ItemApiController {
     private final ItemService itemService;
 
     @PostMapping("/api/items")
-    public ResponseEntity<Long> saveItem(@ModelAttribute ItemCreate itemCreate,
-                                           MemberSession session) throws IOException {
+    public ResponseEntity<Map<String,Long>> saveItem(@ModelAttribute ItemCreate itemCreate,
+                                        MemberSession session) throws IOException {
         return ResponseEntity.ok(itemService.save(itemCreate, session));
     }
 
@@ -49,7 +50,7 @@ public class ItemApiController {
     }
 
     @PutMapping("/api/items/{itemId}")
-    public ResponseEntity<Long> updateItem(@PathVariable Long itemId,
+    public ResponseEntity<Map<String,Long>> updateItem(@PathVariable Long itemId,
                                      @ModelAttribute ItemUpdate itemUpdate,
                                      MemberSession session) throws IOException {
 

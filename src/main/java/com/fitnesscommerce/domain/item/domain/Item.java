@@ -25,15 +25,9 @@ public class Item {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ItemImage> itemImages = new ArrayList<>();
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_category_id")
     private ItemCategory itemCategory;
-
-    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ItemComment> comments = new ArrayList<>();
 
     private String itemName;
 
@@ -82,13 +76,5 @@ public class Item {
         this.itemStatus = itemStatus;
         this.buyer = buyer;
     }
-
-    public void addItemImage(ItemImage itemImage) {
-        this.itemImages.add(itemImage);
-    }
-
-    public void addItemComment(ItemComment itemComment) {this.comments.add(itemComment); }
-
-    public void removeItemComment(ItemComment itemComment) {this.comments.remove(itemComment); }
 
 }

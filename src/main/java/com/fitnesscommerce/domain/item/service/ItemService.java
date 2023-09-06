@@ -38,7 +38,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -57,7 +59,7 @@ public class ItemService  {
     private String fileStorageLocation;
 
     @Transactional
-    public Long save(ItemCreate itemCreate, MemberSession session) throws IOException {
+    public Map<String, Long> save(ItemCreate itemCreate, MemberSession session) throws IOException {
 
         Member member = memberRepository.findById(session.id)
                 .orElseThrow(IdNotFound::new);
@@ -91,17 +93,14 @@ public class ItemService  {
                         .item(item)
                         .build();
 
-                item.addItemImage(itemImage);//아이템에 이미지 저장
-
                 itemImageRepository.save(itemImage); //이미지 저장
             }
         }
 
+        Map<String, Long> response = new HashMap<>();
 
-        itemCategory.addItem(item);
-
-        return saveItemd.getId();
-
+        response.put("id", saveItemd.getId());
+        return response;
     }
 
     @Transactional
@@ -113,6 +112,7 @@ public class ItemService  {
     public ItemResponse getItemResponseById(Long itemId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(ItemNotFound::new);
+        List<ItemImage> itemImages = itemImageRepository.findByItemId(itemId);
 
         return ItemResponse.builder()
                 .id(item.getId())
@@ -123,10 +123,11 @@ public class ItemService  {
                 .itemPrice(item.getItemPrice())
                 .itemStatus(item.getItemStatus())
                 .buyerId(item.getBuyer() != null ? item.getBuyer().getId() : null)
-                .itemImagesUrl(item.getItemImages().stream().map(ItemImage::getUrl).collect(Collectors.toList()))
+                .itemImagesUrl(itemImages.stream().map(ItemImage::getUrl).collect(Collectors.toList()))
                 .viewCount(item.getViewCount())
                 .created_at(item.getCreated_at())
                 .updated_at((item.getUpdated_at()))
+                .nickName(memberRepository.getReferenceById(item.getMember().getId()).getNickname())
                 .build();
     }
 
@@ -162,10 +163,10 @@ public class ItemService  {
 
         } else {
             if (search != null) {
-                itemsPage = itemRepository.findByItemNameContaining(search, pageable);
+                itemsPage = itemRepository.findByItemNameContainingAndItemStatusNot(search, "SOLD" ,pageable);
             }
              else {
-                itemsPage = itemRepository.findAll(pageable);
+                itemsPage = itemRepository.findAllExcludeSold(pageable);
             }
 
         }
@@ -187,16 +188,17 @@ public class ItemService  {
                 .itemPrice(item.getItemPrice())
                 .itemStatus(item.getItemStatus())
                 .buyerId(item.getBuyer() != null ? item.getBuyer().getId() : null)
-                .itemImagesUrl(item.getItemImages().stream().map(ItemImage::getUrl).collect(Collectors.toList()))
+                .itemImagesUrl(itemImageRepository.findByItemId(item.getId()).stream().map(ItemImage::getUrl).collect(Collectors.toList()))
                 .viewCount(item.getViewCount())
                 .created_at(item.getCreated_at())
                 .updated_at((item.getUpdated_at()))
+                .nickName(memberRepository.getReferenceById(item.getMember().getId()).getNickname())
                 .build();
     }
 
 
     @Transactional
-    public Long updateItem(Long itemId, ItemUpdate request, MemberSession session) throws IOException {
+    public Map<String, Long> updateItem(Long itemId, ItemUpdate request, MemberSession session) throws IOException {
         // 수정할 Item을 조회합니다.
         Item item = itemRepository.findById(itemId).orElseThrow(ItemNotFound::new);
 
@@ -224,11 +226,6 @@ public class ItemService  {
                     itemImageRepository.delete(itemImage);
                 }
             }
-            item.getItemImages().clear();
-
-            // 기존 카테고리에서 Item을 제거합니다.
-            item.getItemCategory().removeItem(item);
-
             // 새로운 이미지를 저장합니다.
             if (request.getImages() != null) {
                 for (MultipartFile image : request.getImages()) {
@@ -246,17 +243,14 @@ public class ItemService  {
                             .item(item)
                             .build();
 
-                    item.addItemImage(itemImage);
                     itemImageRepository.save(itemImage);
 
                 }
             }
+            Map<String, Long> response = new HashMap<>();
 
-            // 새로운 카테고리에 Item을 추가합니다.
-            itemCategory.addItem(item);
-
-            // 업데이트된 Item의 ID를 반환합니다.
-            return item.getId();
+            response.put("id", item.getId());
+            return response;
         }else
             throw new RuntimeException("회원이 일치하지 않습니다");
 
@@ -282,7 +276,6 @@ public class ItemService  {
             }
 
             ItemCategory category = item.getItemCategory();
-            category.removeItem(item); // 카테고리에서 상품 제거
 
             itemRepository.delete(item);
         }else
