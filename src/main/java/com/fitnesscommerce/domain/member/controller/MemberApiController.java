@@ -37,39 +37,37 @@ public class MemberApiController {
     }
 
 
-    @GetMapping("/api/members") //todo querydsl
+    @GetMapping("/api/members") //todo total page
     public List<MemberResponse> getMembers(@ModelAttribute MemberSearch memberSearch) {
         return memberService.findMembers(memberSearch);
     }
 
-    @GetMapping("/api/members/mypage")
+    @GetMapping("/api/members/myProfile")
     public MemberResponse getMemberOwn(MemberSession session) {
         MemberResponse response = memberService.findOneOwn(session);
         return response;
     }
 
-    @PutMapping("/api/members/{memberId}")
+    @PutMapping("/api/members/myProfile")
     public ResponseEntity editMember(@RequestBody MemberEditRequest request,
-                                     @PathVariable Long memberId,
                                      MemberSession session) {
-        memberService.edit(request, memberId);
+        memberService.edit(request, session);
 
         return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/api/members/{memberId}/password")
+    @PutMapping("/api/members/myProfile/password")
     public ResponseEntity editMemberPassword(@RequestBody MemberEditPasswordRequest request,
-                                             @PathVariable Long memberId,
                                              MemberSession session) {
-        memberService.editPassword(request, memberId);
+        memberService.editPassword(request, session);
 
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/api/members/{memberId}")
-    public ResponseEntity deleteMember(@PathVariable Long memberId,
-                                       MemberSession session) {
-        memberService.delete(memberId);
+    @DeleteMapping("/api/members/myProfile")
+    public ResponseEntity deleteMember(MemberSession session) {
+
+        memberService.delete(session);
 
         return ResponseEntity.ok().build();
     }
@@ -79,7 +77,6 @@ public class MemberApiController {
     public void test1(MemberSession session) {
         System.out.println(12312313);
     }
-
-
+    
 
 }
