@@ -21,7 +21,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,24 +36,28 @@ public class ItemCategoryService {
     private final ItemService itemService;
 
     @Transactional
-    public Long createCategory(ItemCategoryCreate request) {
+    public Map<String, Long> createCategory(ItemCategoryCreate request) {
 
         ItemCategory category = ItemCategory.builder()
                 .title(request.getTitle())
                 .build();
 
-        return itemCategoryRepository.save(category).getId();
+        Map<String, Long> response= new HashMap<>();
+        response.put("id",itemCategoryRepository.save(category).getId());
+        return response;
     }
 
     @Transactional
-    public Long updateCategory(ItemCategoryUpdate request,Long categoryId) {
+    public Map<String, Long> updateCategory(ItemCategoryUpdate request,Long categoryId) {
 
         ItemCategory itemCategory = itemCategoryRepository.findById(categoryId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 아이템 카테고리를 찾을 수 없습니다."));
 
         itemCategory.updateCategory(request.getTitle());
 
-        return itemCategory.getId();
+        Map<String, Long> response= new HashMap<>();
+        response.put("id",itemCategory.getId());
+        return response;
     }
 
     @Transactional
@@ -73,7 +79,6 @@ public class ItemCategoryService {
         return new ItemCategoryResponse(
                 category.getId(),
                 category.getTitle(),
-                category.getItems().stream().map(Item::getId).collect(Collectors.toList()),
                 category.getCreated_at(),
                 category.getUpdated_at()
         );

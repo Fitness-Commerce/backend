@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,10 +21,10 @@ public class ItemCategoryApiController {
     private final ItemCategoryService itemCategoryService;
 
     @PostMapping("/api/categories")
-    public Long create(@RequestBody ItemCategoryCreate request) {return itemCategoryService.createCategory(request);}
+    public Map<String, Long> create(@RequestBody ItemCategoryCreate request) {return itemCategoryService.createCategory(request);}
 
     @PutMapping("/api/categories/{categoryId}")
-    public Long update(@RequestBody ItemCategoryUpdate request, @PathVariable Long categoryId){
+    public Map<String, Long> update(@RequestBody ItemCategoryUpdate request, @PathVariable Long categoryId){
         return itemCategoryService.updateCategory(request,categoryId);
     }
 

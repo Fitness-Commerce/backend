@@ -23,7 +23,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,7 +38,7 @@ public class ItemCommentService {
     private final ItemCommentRepository itemCommentRepository;
 
     @Transactional
-    public Long createComment(ItemCommentCreate request, MemberSession session, Long itemId) throws IOException {
+    public Map<String, Long> createComment(ItemCommentCreate request, MemberSession session, Long itemId) throws IOException {
 
         Member member = memberRepository.findById(session.id)
                 .orElseThrow(IdNotFound::new);
@@ -49,13 +51,14 @@ public class ItemCommentService {
                 .content(request.getContent())
                 .build();
 
-        item.addItemComment(comment);
+        Map<String, Long> response = new HashMap<>();
 
-        return itemCommentRepository.save(comment).getId();
+        response.put("id", itemCommentRepository.save(comment).getId());
+        return response;
     }
 
     @Transactional
-    public Long updateComment(ItemCommentUpdate request, Long itemId, Long commentId, MemberSession session){
+    public Map<String, Long> updateComment(ItemCommentUpdate request, Long itemId, Long commentId, MemberSession session){
 
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(ItemNotFound::new);
@@ -66,7 +69,10 @@ public class ItemCommentService {
 
         if(member == itemComment.getMember()){
             itemComment.updateComment(request.getContent());
-            return itemComment.getId();
+            Map<String, Long> response = new HashMap<>();
+
+            response.put("id", itemComment.getId());
+            return response;
         }else
             throw new RuntimeException("회원이 일치하지 않습니다");
 
@@ -85,8 +91,6 @@ public class ItemCommentService {
                 .orElseThrow(IdNotFound::new);
 
         if(member == itemComment.getMember()){
-            item.removeItemComment(itemComment);
-
             itemCommentRepository.delete(itemComment);
         }else
             throw new RuntimeException("회원이 일치하지 않습니다");
@@ -113,6 +117,7 @@ public class ItemCommentService {
                 .content(comment.getContent())
                 .created_at(comment.getCreated_at())
                 .updated_at(comment.getUpdated_at())
+                .nickName(memberRepository.getReferenceById(comment.getMember().getId()).getNickname())
                 .build();
     }
 

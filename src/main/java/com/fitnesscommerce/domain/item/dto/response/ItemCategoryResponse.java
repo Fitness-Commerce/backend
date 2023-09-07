@@ -12,15 +12,13 @@ public class ItemCategoryResponse {
 
     private Long id;
     private String title;
-    private List<Long> item_ids;
     private LocalDateTime create_at;
     private LocalDateTime update_at;
 
     @Builder
-    public ItemCategoryResponse(Long id, String title,List<Long> item_ids, LocalDateTime create_at, LocalDateTime update_at){
+    public ItemCategoryResponse(Long id, String title, LocalDateTime create_at, LocalDateTime update_at){
         this.id = id;
         this.title = title;
-        this.item_ids = item_ids;
         this.create_at = create_at;
         this.update_at = update_at;
     }

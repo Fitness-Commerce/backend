@@ -24,8 +24,6 @@ public class QItem extends EntityPathBase<Item> {
 
     public final com.fitnesscommerce.domain.member.domain.QMember buyer;
 
-    public final ListPath<ItemComment, QItemComment> comments = this.<ItemComment, QItemComment>createList("comments", ItemComment.class, QItemComment.class, PathInits.DIRECT2);
-
     public final DateTimePath<java.time.LocalDateTime> created_at = createDateTime("created_at", java.time.LocalDateTime.class);
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
@@ -33,8 +31,6 @@ public class QItem extends EntityPathBase<Item> {
     public final QItemCategory itemCategory;
 
     public final StringPath itemDetail = createString("itemDetail");
-
-    public final ListPath<ItemImage, QItemImage> itemImages = this.<ItemImage, QItemImage>createList("itemImages", ItemImage.class, QItemImage.class, PathInits.DIRECT2);
 
     public final StringPath itemName = createString("itemName");
 
