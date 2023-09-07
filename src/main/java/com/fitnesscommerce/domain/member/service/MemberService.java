@@ -129,10 +129,10 @@ public class MemberService {
         return response;
     }
     @Transactional
-    public void edit(MemberEditRequest request, Long memberId) {
-        Member member = memberRepository.findById(memberId).orElseThrow(IdNotFound::new);
+    public void edit(MemberEditRequest request, MemberSession session) {
+        Member member = memberRepository.findById(session.id).orElseThrow(IdNotFound::new);
 
-        member.editMemberInfo(request.getNickName(), request.getPhoneNumber(), request.getAddress());
+        member.editMemberInfo(request.getNickname(), request.getPhoneNumber(), request.getAddress());
 
         member.getArea_range().clear();
 
@@ -142,8 +142,8 @@ public class MemberService {
     }
 
     @Transactional
-    public void editPassword(MemberEditPasswordRequest request, Long memberId) {
-        Member member = memberRepository.findById(memberId).orElseThrow(IdNotFound::new);
+    public void editPassword(MemberEditPasswordRequest request, MemberSession session) {
+        Member member = memberRepository.findById(session.id).orElseThrow(IdNotFound::new);
 
         if (!passwordEncoder.matches(request.getCurrentPassword(), member.getPassword())) {
             throw new VerifyPassword(); //비밀번호 변경할 때 입력한 현재 비밀번호가 잘못 입력됌.
@@ -162,8 +162,9 @@ public class MemberService {
     }
 
     @Transactional
-    public void delete(Long memberId) {
-        memberRepository.deleteById(memberId);
+    public void delete(MemberSession session) {
+        memberRepository.deleteById(session.id);
+
     }
 
 }

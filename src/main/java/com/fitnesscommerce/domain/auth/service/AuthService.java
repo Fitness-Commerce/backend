@@ -150,6 +150,8 @@ public class AuthService {
 
     public void expireToken(String accessToken, String refreshToken, MemberSession session) {
 
+        String originAccessToken = accessToken.substring(7);
+
         if (logoutCounts.containsKey(String.valueOf(session.id))) {
             Integer currentValue = logoutCounts.get(String.valueOf(session.id));
             logoutCounts.put(String.valueOf(session.id), currentValue + 1);
@@ -162,7 +164,7 @@ public class AuthService {
 
         Integer value = logoutCounts.get(String.valueOf(session.id));
         ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
-        valueOperations.set("blacklist-accessToken" + session.id + "-" + value, accessToken, expirationAccess);
+        valueOperations.set("blacklist-accessToken" + session.id + "-" + value, originAccessToken, expirationAccess);
         valueOperations.set("blacklist-refreshToken"+ session.id + "-" + value, refreshToken, expirationRefresh);
 
         log.info("{}회원이 로그아웃 하였습니다.", session.id);
