@@ -28,6 +28,4 @@ public class PostCreate { // POST 요청에서 클라이언트로부터 전달�
 
     }
 
-
-
 }

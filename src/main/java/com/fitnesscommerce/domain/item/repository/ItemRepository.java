@@ -2,7 +2,9 @@ package com.fitnesscommerce.domain.item.repository;
 
 import com.fitnesscommerce.domain.item.domain.Item;
 import com.fitnesscommerce.domain.item.domain.ItemCategory;
+
 import com.fitnesscommerce.domain.item.domain.ItemStatus;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -28,6 +30,8 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
     @Query("SELECT i FROM Item i WHERE i.itemStatus != 'SOLD'")
     Page<Item> findAllExcludeSold(Pageable pageable);
+
+    List<Item> findByMember(Member member);
 
 
 }

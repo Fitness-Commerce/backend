@@ -39,7 +39,7 @@ public class ItemCategoryApiController {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/api/categories/{categoryId}")
+    @DeleteMapping("/api/categories/{categoryId}") //문제없음
     public void delete(@PathVariable Long categoryId) {itemCategoryService.deleteCategory(categoryId);}
 
     @GetMapping("/api/categories")

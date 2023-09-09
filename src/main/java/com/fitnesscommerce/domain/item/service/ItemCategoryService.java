@@ -45,6 +45,7 @@ public class ItemCategoryService {
                 .title(request.getTitle())
                 .build();
 
+
         Long categoryId=itemCategoryRepository.save(category).getId();
 
         return IdResponse.builder()

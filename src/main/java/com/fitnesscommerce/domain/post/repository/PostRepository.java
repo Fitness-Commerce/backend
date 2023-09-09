@@ -1,5 +1,6 @@
 package com.fitnesscommerce.domain.post.repository;
 
+import com.fitnesscommerce.domain.member.domain.Member;
 import com.fitnesscommerce.domain.post.domain.Post;
 import com.fitnesscommerce.domain.post.domain.PostCategory;
 import com.fitnesscommerce.domain.post.domain.PostComment;
@@ -10,6 +11,9 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+import java.util.Optional;
+
 
 public interface PostRepository extends JpaRepository<Post, Long> {
     @Modifying
@@ -17,5 +21,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     void updateViewCount(Long postId);
 
     Page<Post> findByPostCategory(PostCategory postCategory, Pageable pageable);
+
+    List<Post> findByMember(Member member);
 
 }

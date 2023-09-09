@@ -69,7 +69,7 @@ public class ItemApiController {
         itemService.delete(itemId,session);
     }
 
-    @PutMapping("/api/items/updateStatus")
+    @PutMapping("/api/items/updateStatus") //얘기해봐야함
     public void updateItem(@RequestBody ItemStatusUpdate itemStatusUpdate,
                            MemberSession session) throws IOException {
 
