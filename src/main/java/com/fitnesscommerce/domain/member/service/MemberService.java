@@ -33,7 +33,7 @@ public class MemberService {
     public void signup(MemberJoinRequest request) {
 
         //중복 체크
-        check_duplicates(request);
+        check_duplicates_join(request);
 
         String encryptedPassword = passwordEncoder.encrypt(request.getPassword());
 
@@ -65,11 +65,22 @@ public class MemberService {
 
 
 
-    private void check_duplicates(MemberJoinRequest request) {
+    private void check_duplicates_join(MemberJoinRequest request) {
         Optional<Member> email = memberRepository.findByEmail(request.getEmail());
         if (email.isPresent()) {
             throw new AlreadyExistsEmail();
         }
+        Optional<Member> nickname = memberRepository.findByNickname(request.getNickname());
+        if (nickname.isPresent()) {
+            throw new AlreadyExistsNickname();
+        }
+        Optional<Member> phoneNumber = memberRepository.findByPhoneNumber(request.getPhoneNumber());
+        if (phoneNumber.isPresent()) {
+            throw new AlreadyExistsPhoneNumber();
+        }
+    }
+
+    private void check_duplicates_edit(MemberEditRequest request) {
         Optional<Member> nickname = memberRepository.findByNickname(request.getNickname());
         if (nickname.isPresent()) {
             throw new AlreadyExistsNickname();
@@ -131,6 +142,8 @@ public class MemberService {
     @Transactional
     public void edit(MemberEditRequest request, MemberSession session) {
         Member member = memberRepository.findById(session.id).orElseThrow(IdNotFound::new);
+
+        check_duplicates_edit(request);
 
         member.editMemberInfo(request.getNickname(), request.getPhoneNumber(), request.getAddress());
 
