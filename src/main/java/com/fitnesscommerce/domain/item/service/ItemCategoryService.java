@@ -43,6 +43,7 @@ public class ItemCategoryService {
                 .build();
 
         Map<String, Long> response= new HashMap<>();
+
         response.put("id",itemCategoryRepository.save(category).getId());
         return response;
     }
@@ -51,7 +52,7 @@ public class ItemCategoryService {
     public Map<String, Long> updateCategory(ItemCategoryUpdate request,Long categoryId) {
 
         ItemCategory itemCategory = itemCategoryRepository.findById(categoryId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 아이템 카테고리를 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("해당 아이템 카테고리를 찾을 수 없습니다.")); //카테고리 예외로 변경
 
         itemCategory.updateCategory(request.getTitle());
 

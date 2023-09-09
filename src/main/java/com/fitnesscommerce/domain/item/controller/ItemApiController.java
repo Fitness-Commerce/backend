@@ -38,7 +38,7 @@ public class ItemApiController {
     }
 
     @GetMapping("/api/items")
-    public ResponseEntity<CustomItemPageResponse> getAllItemPaging(
+    public ResponseEntity<CustomItemPageResponse> getAllItemPaging(//dto로 묶기 + (orderby+direction합치기)
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestHeader(value = "Authorization", required = false) String accessToken,
@@ -64,7 +64,7 @@ public class ItemApiController {
         return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/api/items/updateStatus")
+    @PutMapping("/api/items/updateStatus") //얘기해봐야함
     public void updateItem(@RequestBody ItemStatusUpdate itemStatusUpdate,
                            MemberSession session) throws IOException {
 

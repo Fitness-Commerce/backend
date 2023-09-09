@@ -78,7 +78,7 @@ public class PostService {
 
                 PostImage postImage = PostImage.builder()
                         .fileName(fileName)
-                        .url("http://localhost:8080/api/item/images" + "/" + fileName)
+                        .url("http://43.200.32.144/api/item/images" + "/" + fileName)
                         .post(post)
                         .build();
 
@@ -220,4 +220,6 @@ public class PostService {
         // 게시글 삭제
         postRepository.delete(post);
     }
+
+
 }

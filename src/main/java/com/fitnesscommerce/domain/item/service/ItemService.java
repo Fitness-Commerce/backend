@@ -89,7 +89,7 @@ public class ItemService  {
 
                 ItemImage itemImage = ItemImage.builder()
                         .fileName(fileName)
-                        .url("http://localhost:8080/api/item/images" + "/" + fileName)
+                        .url("http://43.200.32.144/api/item/images" + "/" + fileName)
                         .item(item)
                         .build();
 
@@ -207,7 +207,7 @@ public class ItemService  {
                 .orElseThrow(ItemCategoryNotFound::new);
 
         Member member = memberRepository.findById(session.id)
-                .orElseThrow(IdNotFound::new);
+                .orElseThrow(IdNotFound::new); //토큰이 1번 유저의 토큰 -> 1번 유저네? ㅇㅋ
 
         if(member == item.getMember()){
 

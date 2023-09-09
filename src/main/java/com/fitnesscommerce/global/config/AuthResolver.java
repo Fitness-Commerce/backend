@@ -30,7 +30,7 @@ public class AuthResolver implements HandlerMethodArgumentResolver {
     @Override
     public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
 
-        String token = webRequest.getHeader("Authorization");
+        String token = webRequest.getHeader("Authorization");// 토큰이 null이면 500뜸
         String jws = token.substring(7);
 
         if (jws == null || jws.equals("")) {

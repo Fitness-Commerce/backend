@@ -20,15 +20,16 @@ public class ItemCategoryApiController {
 
     private final ItemCategoryService itemCategoryService;
 
-    @PostMapping("/api/categories")
+
+    @PostMapping("/api/categories")  //문제없음 = map -> dto 응답 형식(고려해볼만함) ResponseEntity -> 응답코드 201 생성
     public Map<String, Long> create(@RequestBody ItemCategoryCreate request) {return itemCategoryService.createCategory(request);}
 
-    @PutMapping("/api/categories/{categoryId}")
+    @PutMapping("/api/categories/{categoryId}") //문제없음
     public Map<String, Long> update(@RequestBody ItemCategoryUpdate request, @PathVariable Long categoryId){
         return itemCategoryService.updateCategory(request,categoryId);
     }
 
-    @DeleteMapping("/api/categories/{categoryId}")
+    @DeleteMapping("/api/categories/{categoryId}") //문제없음
     public void delete(@PathVariable Long categoryId) {itemCategoryService.deleteCategory(categoryId);}
 
     @GetMapping("/api/categories")
@@ -40,11 +41,12 @@ public class ItemCategoryApiController {
     @GetMapping("/api/categories/{categoryId}/items")
     public ResponseEntity<CustomItemPageResponse> getItemsByCategoryPaging(
             @PathVariable Long categoryId,
-            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "1") int page, //dto로 한방에 묶을 수 있나?
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String orderBy,
             @RequestParam(defaultValue = "DESC") String direction) {
 
         return ResponseEntity.ok(itemCategoryService.getItemsByCategoryPaging(categoryId, page, size, orderBy, direction));
+        //필드로 빼서 필드명을 올림
     }
 }

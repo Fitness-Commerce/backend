@@ -24,6 +24,7 @@ public class PostApiController {
     @PostMapping("/api/posts")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<Long> savePost(@ModelAttribute PostCreate postCreate, MemberSession session)throws IOException {
+
         return ResponseEntity.ok(postService.savePost(postCreate, session));
     }
 
@@ -33,6 +34,8 @@ public class PostApiController {
         postService.updateViewCount(postId);
         return postService.findOnePost(postId);
     }
+
+
 
 
     //게시글 전체 조회
