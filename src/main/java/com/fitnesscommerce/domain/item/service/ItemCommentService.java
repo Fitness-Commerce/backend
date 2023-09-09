@@ -4,7 +4,9 @@ import com.fitnesscommerce.domain.item.domain.Item;
 import com.fitnesscommerce.domain.item.domain.ItemComment;
 import com.fitnesscommerce.domain.item.dto.request.ItemCommentCreate;
 import com.fitnesscommerce.domain.item.dto.request.ItemCommentUpdate;
+import com.fitnesscommerce.domain.item.dto.request.ItemSortFilter;
 import com.fitnesscommerce.domain.item.dto.response.CustomItemCommentPageResponse;
+import com.fitnesscommerce.domain.item.dto.response.IdResponse;
 import com.fitnesscommerce.domain.item.dto.response.ItemCommentResponse;
 import com.fitnesscommerce.domain.item.exception.ItemCommentNotFound;
 import com.fitnesscommerce.domain.item.exception.ItemNotFound;
@@ -38,7 +40,7 @@ public class ItemCommentService {
     private final ItemCommentRepository itemCommentRepository;
 
     @Transactional
-    public Map<String, Long> createComment(ItemCommentCreate request, MemberSession session, Long itemId) throws IOException {
+    public IdResponse createComment(ItemCommentCreate request, MemberSession session, Long itemId) throws IOException {
 
         Member member = memberRepository.findById(session.id)
                 .orElseThrow(IdNotFound::new);
@@ -51,14 +53,15 @@ public class ItemCommentService {
                 .content(request.getContent())
                 .build();
 
-        Map<String, Long> response = new HashMap<>();
+        Long commentId = itemCommentRepository.save(comment).getId();
 
-        response.put("id", itemCommentRepository.save(comment).getId());
-        return response;
+        return IdResponse.builder()
+                .id(commentId)
+                .build();
     }
 
     @Transactional
-    public Map<String, Long> updateComment(ItemCommentUpdate request, Long itemId, Long commentId, MemberSession session){
+    public IdResponse updateComment(ItemCommentUpdate request, Long itemId, Long commentId, MemberSession session){
 
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(ItemNotFound::new);
@@ -69,10 +72,10 @@ public class ItemCommentService {
 
         if(member == itemComment.getMember()){
             itemComment.updateComment(request.getContent());
-            Map<String, Long> response = new HashMap<>();
 
-            response.put("id", itemComment.getId());
-            return response;
+            return IdResponse.builder()
+                    .id(itemComment.getId())
+                    .build();
         }else
             throw new RuntimeException("회원이 일치하지 않습니다");
 
@@ -96,10 +99,15 @@ public class ItemCommentService {
             throw new RuntimeException("회원이 일치하지 않습니다");
     }
 
-    public CustomItemCommentPageResponse getCommentsByItem(Long itemId, int page, int size, String orderBy, String direction) {
+    public CustomItemCommentPageResponse getCommentsByItem(Long itemId, ItemSortFilter itemSortFilter) {
+
+        String[] sortWord = itemSortFilter.getOrder().split("_");
+        String orderBy = sortWord[0];
+        String direction = sortWord[1];
+
         Sort.Order order = new Sort.Order(Sort.Direction.fromString(direction), orderBy);
         Sort sort = Sort.by(order);
-        Pageable pageable = PageRequest.of(page - 1, size, sort);
+        Pageable pageable = PageRequest.of(itemSortFilter.getPage() - 1, itemSortFilter.getSize(), sort);
         Page<ItemComment> commentsPage = itemCommentRepository.findByItemId(itemId, pageable);
 
         List<ItemCommentResponse> content = commentsPage.getContent().stream()
