@@ -1,6 +1,5 @@
 package com.fitnesscommerce.domain.member.domain;
 
-import com.fitnesscommerce.domain.chat.domain.ChatRoom;
 import com.fitnesscommerce.domain.item.domain.Item;
 import com.fitnesscommerce.domain.post.domain.Post;
 import jakarta.persistence.*;
