@@ -125,9 +125,9 @@ public class AuthService {
             String accessTokenId = generateRandomToken();
 
             String newAccessToken = Jwts.builder()
-                    //.setSubject(String.valueOf(memberId))
+                    .setSubject(String.valueOf(memberId))
                     .claim("tokenType", "access")
-                    .claim("accessTokenId", accessTokenId)
+                    //.claim("accessTokenId", accessTokenId)
                     .signWith(key)
                     .setExpiration(new Date(curTime + ACCESS_TOKEN_EXPIRATION_TIME))
                     .setIssuedAt(new Date(curTime))
@@ -139,7 +139,6 @@ public class AuthService {
             accessTime = new Date(refreshTime + ACCESS_TOKEN_EXPIRATION_TIME);
 
             log.info("{}회원의 accessToken을 재발급하였습니다.", memberId);
-
 
             return newAccessToken;
         } else {//refreshtoken이 만료되었다면
