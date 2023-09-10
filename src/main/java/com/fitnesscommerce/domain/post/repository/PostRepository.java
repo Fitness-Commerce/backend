@@ -1,5 +1,6 @@
 package com.fitnesscommerce.domain.post.repository;
 
+import com.fitnesscommerce.domain.item.domain.Item;
 import com.fitnesscommerce.domain.post.domain.Post;
 import com.fitnesscommerce.domain.post.domain.PostCategory;
 import com.fitnesscommerce.domain.post.domain.PostComment;
@@ -17,5 +18,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     void updateViewCount(Long postId);
 
     Page<Post> findByPostCategory(PostCategory postCategory, Pageable pageable);
+
+    // 로그인되지 않은 사용자나 accessToken이 제공되지 않은 경우, search로 게시글 제목 검색 및 정렬
+    Page<Post> findByTitleContaining(String search, Pageable pageable);
 
 }

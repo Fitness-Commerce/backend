@@ -4,6 +4,9 @@ import com.fitnesscommerce.domain.post.domain.Post;
 import com.fitnesscommerce.domain.post.domain.PostCategory;
 import com.fitnesscommerce.domain.post.dto.request.PostCategoryCreate;
 import com.fitnesscommerce.domain.post.dto.request.PostCategoryUpdate;
+import com.fitnesscommerce.domain.post.dto.request.PostSortFilter;
+import com.fitnesscommerce.domain.post.dto.response.CustomPostPageResponse;
+import com.fitnesscommerce.domain.post.dto.response.IdResponse;
 import com.fitnesscommerce.domain.post.dto.response.PostCategoryResponse;
 import com.fitnesscommerce.domain.post.dto.response.PostResponse;
 import com.fitnesscommerce.domain.post.exception.PostCategoryNotFound;
@@ -13,11 +16,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,12 +37,16 @@ public class PostCategoryService {
 
     // 게시글 카테고리 작성
     @Transactional
-    public Long createCategory(PostCategoryCreate request){
-        PostCategory category = PostCategory.builder()
+    public IdResponse createCategory(PostCategoryCreate request){
+        PostCategory postCategory = PostCategory.builder()
                 .title(request.getTitle())
                 .build();
 
-        return postCategoryRepository.save(category).getId();
+        PostCategory savePostCategory = postCategoryRepository.save(postCategory);
+
+        return IdResponse.builder()
+                .id(savePostCategory.getId())
+                .build();
     }
 
     // 게시글 카테고리 조회
@@ -52,33 +62,44 @@ public class PostCategoryService {
         return new PostCategoryResponse(
                 category.getId(),
                 category.getTitle(),
-                category.getPosts().stream().map(Post::getId).collect(Collectors.toList()), //getPosts()를 호출하여 해당 카테고리에 연관된 게시글들의 목록을 가져옵니다.
                 category.getCreated_at(),
                 category.getUpdated_at()
         );
     }
 
 
-    public Page<PostResponse> getPostsByCategoryPaging(Long categoryId, int page, int size){
+    public CustomPostPageResponse getPostsByCategoryPaging(Long categoryId, PostSortFilter postSortFilter){
         PostCategory postCategory = postCategoryRepository.findById(categoryId)
                 .orElseThrow(()-> new IllegalArgumentException("해당 게시글 카테고리를 찾을 수 없습니다."));
 
-        Pageable pageable = PageRequest.of(page, size);
+        String[] sortPost = postSortFilter.getOrder().split("_");
+        String orderBy = sortPost[0];
+        String direction = sortPost[1];
+
+        Sort.Order field = new Sort.Order(Sort.Direction.fromString(direction), orderBy);
+        Sort sort = Sort.by(field);
+        Pageable pageable = PageRequest.of(postSortFilter.getPage()-1, postSortFilter.getSize(), sort);
         Page<Post> postPage = postRepository.findByPostCategory(postCategory, pageable);
 
-        Page<PostResponse> postResponsePage = postPage.map(postService::mapPostToResponse);
-        return PageableExecutionUtils.getPage(postResponsePage.getContent(), pageable, postPage::getTotalElements);
+        List<PostResponse> content = postPage.getContent().stream()
+                .map(postService::mapPostToResponse)
+                .collect(Collectors.toList());
+
+        return new CustomPostPageResponse(postPage.getTotalPages(), content);
     }
 
     // 게시글 카테고리 수정
     @Transactional
-    public Long updateCategory(PostCategoryUpdate request, Long categoryId){
+    public IdResponse updateCategory(PostCategoryUpdate request, Long categoryId){
         PostCategory postCategory = postCategoryRepository.findById(categoryId)
                 .orElseThrow(()-> new IllegalArgumentException("해당 게시글 카테고리를 찾을 수 없습니다."));
 
         postCategory.updateCategory(request.getTitle());
 
-        return postCategory.getId();
+        return IdResponse.builder()
+                .id(postCategory.getId())
+                .build();
+
     }
 
     // 게시글 카테고리 삭제
@@ -91,6 +112,5 @@ public class PostCategoryService {
         postCategoryRepository.delete(postCategory);
 
     }
-
 
 }
