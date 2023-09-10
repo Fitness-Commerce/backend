@@ -13,7 +13,5 @@ import java.util.Optional;
 
 public interface PostCommentRepository extends JpaRepository<PostComment, Long> {
     Optional<PostComment> findByContent(String content);
-
-
     Page<PostComment> findByPostId(Long postId, Pageable pageable);
 }

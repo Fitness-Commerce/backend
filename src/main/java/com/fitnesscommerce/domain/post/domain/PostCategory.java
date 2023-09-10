@@ -19,9 +19,6 @@ public class PostCategory{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToMany(mappedBy = "postCategory", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Post> posts = new ArrayList<>(); //객체가 추가되어 용량을 초과하면 자동으로 부족한 크기만큼 용량이 늘어남.
-
     private String title;
 
     private LocalDateTime created_at;
@@ -39,11 +36,4 @@ public class PostCategory{
         this.updated_at = LocalDateTime.now();
     }
 
-    public void addPost(Post post){
-        this.posts.add(post);
-    }
-
-    public void removePost(Post post){
-        this.posts.remove(post);
-    }
 }

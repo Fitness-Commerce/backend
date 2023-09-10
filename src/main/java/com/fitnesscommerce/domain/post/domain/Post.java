@@ -28,13 +28,6 @@ public class Post {
     @JoinColumn(name = "post_Category_id")
     private PostCategory postCategory;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "post_id")
-    private List<PostImage> postImages = new ArrayList<>();
-
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PostComment> postComments;
-
     private String title;  // 제목
 
     private String content; // 내용
@@ -56,7 +49,6 @@ public class Post {
         this.created_at = LocalDateTime.now();
     }
 
-
     public void updatePost(PostCategory postCategory, String title, String content) {
         this.postCategory = postCategory;
         this.title = title;
@@ -64,11 +56,4 @@ public class Post {
         this.updated_at = LocalDateTime.now();
     }
 
-    public void addPostImage(PostImage postImage){
-        this.postImages.add(postImage);
-    }
-
-    public void removePostComment(PostComment postComment){
-        this.postComments.remove(postComment);
-    }
 }

@@ -7,7 +7,10 @@ import com.fitnesscommerce.domain.post.domain.Post;
 import com.fitnesscommerce.domain.post.domain.PostCategory;
 import com.fitnesscommerce.domain.post.domain.PostImage;
 import com.fitnesscommerce.domain.post.dto.request.PostCreate;
+import com.fitnesscommerce.domain.post.dto.request.PostSortFilter;
 import com.fitnesscommerce.domain.post.dto.request.PostUpdate;
+import com.fitnesscommerce.domain.post.dto.response.CustomPostPageResponse;
+import com.fitnesscommerce.domain.post.dto.response.IdResponse;
 import com.fitnesscommerce.domain.post.dto.response.PostResponse;
 import com.fitnesscommerce.domain.post.exception.PostCategoryNotFound;
 import com.fitnesscommerce.domain.post.exception.PostNotFound;
@@ -20,6 +23,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +33,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -48,7 +54,7 @@ public class PostService {
 
     // 글 작성
     @Transactional
-    public Long savePost(PostCreate postCreate, MemberSession session)throws IOException {
+    public IdResponse save(PostCreate postCreate, MemberSession session) throws IOException {
 
         Member member = memberRepository.findById(session.id)
                 .orElseThrow(IdNotFound::new);
@@ -63,10 +69,10 @@ public class PostService {
                 .content(postCreate.getContent())
                 .build();
 
-        Post savedPost = postRepository.save(post); // 게시글 저장
+        Post savePost = postRepository.save(post); // 게시글 저장
 
-        if (postCreate.getImages() != null){
-            for(MultipartFile image : postCreate.getImages()){
+        if (postCreate.getImages() != null) {
+            for (MultipartFile image : postCreate.getImages()) {
 
                 String originalFileName = image.getOriginalFilename();
                 String extension = originalFileName.substring(originalFileName.lastIndexOf("."));
@@ -82,20 +88,17 @@ public class PostService {
                         .post(post)
                         .build();
 
-                post.addPostImage(postImage); //게시글에 이미지 저장
-
                 postImageRepository.save(postImage); //게시글 저장
             }
         }
-
-        postCategory.addPost(post);
-
-        return savedPost.getId();
+        return IdResponse.builder()
+                .id(savePost.getId())
+                .build();
     }
 
     // 게시글 조회 수
     @Transactional
-    public void updateViewCount(Long postId){
+    public void updateViewCount(Long postId) {
         postRepository.updateViewCount(postId);
     }
 
@@ -104,13 +107,16 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(PostNotFound::new);
 
+        List<PostImage> postImages = postImageRepository.findByPostId(postId);
+
         return PostResponse.builder()
                 .id(post.getId())
                 .memberId(post.getMember().getId())
+                .nickname(post.getMember().getNickname())
                 .postCategoryId(post.getPostCategory().getId())
                 .title(post.getTitle())
                 .content(post.getContent())
-                .postImageUrl(post.getPostImages().stream().map(PostImage::getUrl).collect(Collectors.toList()))
+                .postImageUrl(postImages.stream().map(PostImage::getUrl).collect(Collectors.toList()))
                 .viewCount(post.getViewCount())
                 .createdAt(post.getCreated_at())
                 .updatedAt(post.getUpdated_at())
@@ -118,21 +124,38 @@ public class PostService {
     }
 
     // 게시글 전체 조회
-    public Page<PostResponse> findAllPostPaging(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Post> postPage = postRepository.findAll(pageable);
-        Page<PostResponse> postResponsePage = postPage.map(this::mapPostToResponse);
-        return PageableExecutionUtils.getPage(postResponsePage.getContent(), pageable, postPage::getTotalElements);
+    public CustomPostPageResponse getAllPostPaging(PostSortFilter postSortFilter, String search) {
+
+        String[] sortPost = postSortFilter.getOrder().split("_");
+        String orderBy = sortPost[0];
+        String direction = sortPost[1];
+
+
+        Sort.Order field = new Sort.Order(Sort.Direction.fromString(direction), orderBy);
+        Sort sort = Sort.by(field);
+        Pageable pageable = PageRequest.of(postSortFilter.getPage()-1, postSortFilter.getSize(),sort);
+        Page<Post> postsPage;
+
+        if (search != null) {
+            postsPage = postRepository.findByTitleContaining(search, pageable);
+        } else {
+            postsPage = postRepository.findAll(pageable);
+        }
+
+        List<PostResponse> content = postsPage.getContent().stream()
+                .map(this::mapPostToResponse)
+                .collect(Collectors.toList());
+
+        return new CustomPostPageResponse(postsPage.getTotalPages(), content);
     }
 
-    public PostResponse mapPostToResponse(Post post){
+    public PostResponse mapPostToResponse(Post post) {
         return PostResponse.builder()
                 .id(post.getId())
                 .memberId(post.getMember().getId())
                 .postCategoryId(post.getPostCategory().getId())
                 .title(post.getTitle())
                 .content(post.getContent())
-                .postImageUrl(post.getPostImages().stream().map(PostImage::getUrl).collect(Collectors.toList()))
                 .viewCount(post.getViewCount())
                 .createdAt(post.getCreated_at())
                 .updatedAt(post.getUpdated_at())
@@ -141,7 +164,7 @@ public class PostService {
 
     //게시글 수정
     @Transactional
-    public Long updatePost(Long postId, PostUpdate request)throws IOException{
+    public IdResponse updatePost(Long postId, PostUpdate request, MemberSession session) throws IOException {
         // 수정할 Post를 조회합니다.
         Post post = postRepository.findById(postId).orElseThrow(PostNotFound::new);
 
@@ -149,76 +172,84 @@ public class PostService {
         PostCategory postCategory = postCategoryRepository.findByTitle(request.getPostCategoryTitle())
                 .orElseThrow(PostCategoryNotFound::new);
 
-        // Post의 속성을 업데이트합니다.
-        post.updatePost(postCategory, request.getTitle(), request.getContent());
+        // 수정하는 사용자를 찾습니다.
+        Member member = memberRepository.findById(session.id)
+                .orElseThrow(IdNotFound::new);
 
-        // 기존 이미지들을 삭제하고 Post의 이미지 컬렉션을 초기화합니다.
-        List<PostImage> byPostId = postImageRepository.findByPostId(post.getId());
-        if(byPostId != null){
-            for(PostImage postImage : byPostId){
+        if (member == post.getMember()) {
+
+            // Post의 속성을 업데이트합니다.
+            post.updatePost(postCategory, request.getTitle(), request.getContent());
+
+            // 기존 이미지들을 삭제하고 Post의 이미지 컬렉션을 초기화합니다.
+            List<PostImage> byPostId = postImageRepository.findByPostId(post.getId());
+            if (byPostId != null) {
+                for (PostImage postImage : byPostId) {
+                    String fileName = postImage.getFileName();
+                    String filePath = fileStorageLocation + "/" + fileName;
+                    Path targetLocation = Paths.get(filePath);
+                    Files.deleteIfExists(targetLocation);
+                    postImageRepository.delete(postImage);
+                }
+            }
+
+            //새로운 PostImage 생성 및 연결
+            if (request.getImages() != null) {
+                for (MultipartFile image : request.getImages()) {
+                    String originalFileName = image.getOriginalFilename();
+                    String extension = originalFileName.substring(originalFileName.lastIndexOf("."));
+                    String fileName = UUID.randomUUID().toString() + extension;
+                    String filePath = fileStorageLocation + "/" + fileName;
+
+                    Path targetLocation = Paths.get(filePath);
+                    Files.copy(image.getInputStream(), targetLocation);
+
+                    PostImage postImage = PostImage.builder()
+                            .fileName(fileName)
+                            .url("http://43.200.32.144:8080/api/post/images" + "/" + fileName)
+                            .post(post)
+                            .build();
+
+                    postImageRepository.save(postImage);
+                }
+            }
+            return IdResponse.builder()
+                    .id(post.getId())
+                    .build();
+        }else
+            throw new RuntimeException("회원이 일치하지 않습니다.");
+    }
+
+
+
+
+
+    //게시글 삭제
+    @Transactional
+    public void deletePost(Long postId, MemberSession session) throws IOException {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(PostNotFound::new);
+
+        Member member = memberRepository.findById(session.id)
+                .orElseThrow(IdNotFound::new);
+
+        if (member == post.getMember()) {
+            // 게시글에 연결된 이미지들을 찾습니다.
+            List<PostImage> postImages = postImageRepository.findByPostId(post.getId());
+
+            // 이미지 삭제 수행
+            for (PostImage postImage : postImages) {
                 String fileName = postImage.getFileName();
                 String filePath = fileStorageLocation + "/" + fileName;
                 Path targetLocation = Paths.get(filePath);
                 Files.deleteIfExists(targetLocation);
-                postImageRepository.delete(postImage);
             }
-        }
-        post.getPostImages().clear();
 
-        //기존 카테고리에서 Post를 제거합니다.
-        post.getPostCategory().removePost(post);
+            // 게시글 삭제
+            postRepository.delete(post);
 
-        //새로운 PostImage 생성 및 연결
-        if(request.getImages() != null){
-            for(MultipartFile image : request.getImages()){
-                String originalFileName = image.getOriginalFilename();
-                String extension = originalFileName.substring(originalFileName.lastIndexOf("."));
-                String fileName = UUID.randomUUID().toString() + extension;
-                String filePath = fileStorageLocation + "/" + fileName;
-
-                Path targetLocation = Paths.get(filePath);
-                Files.copy(image.getInputStream(), targetLocation);
-
-                PostImage postImage = PostImage.builder()
-                        .fileName(fileName)
-                        .url("http://localhost:8080/api/item/images" + "/" + fileName)
-                        .post(post)
-                        .build();
-
-                post.addPostImage(postImage);
-                postImageRepository.save(postImage);
-            }
-        }
-
-        //새로운 카테고리에 Post를 추가합니다.
-        postCategory.addPost(post);
-
-        //업데이트된 Post의 ID를 반환합니다.
-        return post.getId();
-    }
-
-    //게시글 삭제
-    @Transactional
-    public void deletePost(Long postId) throws IOException{
-        Post post = postRepository.findById(postId)
-                .orElseThrow(PostNotFound::new);
-
-        // 게시글에 연결된 이미지들을 찾습니다.
-        List<PostImage> postImages = postImageRepository.findByPostId(post.getId());
-
-        // 이미지 삭제 수행
-        for(PostImage postImage : postImages){
-            String fileName = postImage.getFileName();
-            String filePath = fileStorageLocation + "/" + fileName;
-            Path targetLocation = Paths.get(filePath);
-            Files.deleteIfExists(targetLocation);
-        }
-
-        PostCategory category = post.getPostCategory();
-        category.removePost(post); //카테고리에서 게시글 제거
-
-        // 게시글 삭제
-        postRepository.delete(post);
+        }else
+            throw new RuntimeException("회원이 일치하지 않습니다.");
     }
 
 

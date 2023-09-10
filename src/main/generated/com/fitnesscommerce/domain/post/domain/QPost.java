@@ -32,10 +32,6 @@ public class QPost extends EntityPathBase<Post> {
 
     public final QPostCategory postCategory;
 
-    public final ListPath<PostComment, QPostComment> postComments = this.<PostComment, QPostComment>createList("postComments", PostComment.class, QPostComment.class, PathInits.DIRECT2);
-
-    public final ListPath<PostImage, QPostImage> postImages = this.<PostImage, QPostImage>createList("postImages", PostImage.class, QPostImage.class, PathInits.DIRECT2);
-
     public final StringPath title = createString("title");
 
     public final DateTimePath<java.time.LocalDateTime> updated_at = createDateTime("updated_at", java.time.LocalDateTime.class);
