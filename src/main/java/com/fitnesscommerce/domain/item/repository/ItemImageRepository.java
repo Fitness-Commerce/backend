@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface ItemImageRepository extends JpaRepository<ItemImage, Long> {
 
-    List<ItemImage> findByItemId(Long itemId);
+    List<ItemImage> findByItemId(Long itemId); //그 아이템에 속한 이미지들
 }

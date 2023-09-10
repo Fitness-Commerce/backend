@@ -5,9 +5,11 @@ import com.fitnesscommerce.domain.item.domain.ItemCategory;
 import com.fitnesscommerce.domain.item.domain.ItemImage;
 import com.fitnesscommerce.domain.item.domain.ItemStatus;
 import com.fitnesscommerce.domain.item.dto.request.ItemCreate;
+import com.fitnesscommerce.domain.item.dto.request.ItemSortFilter;
 import com.fitnesscommerce.domain.item.dto.request.ItemStatusUpdate;
 import com.fitnesscommerce.domain.item.dto.request.ItemUpdate;
 import com.fitnesscommerce.domain.item.dto.response.CustomItemPageResponse;
+import com.fitnesscommerce.domain.item.dto.response.IdResponse;
 import com.fitnesscommerce.domain.item.dto.response.ItemResponse;
 import com.fitnesscommerce.domain.item.exception.ItemCategoryNotFound;
 import com.fitnesscommerce.domain.item.exception.ItemNotFound;
@@ -38,8 +40,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -57,7 +58,7 @@ public class ItemService  {
     private String fileStorageLocation;
 
     @Transactional
-    public Long save(ItemCreate itemCreate, MemberSession session) throws IOException {
+    public IdResponse save(ItemCreate itemCreate, MemberSession session) throws IOException {
 
         Member member = memberRepository.findById(session.id)
                 .orElseThrow(IdNotFound::new);
@@ -75,6 +76,7 @@ public class ItemService  {
         Item saveItemd = itemRepository.save(item); //아이템 저장
 
         if(itemCreate.getImages() != null){
+
             for (MultipartFile image : itemCreate.getImages()) {
 
                 String originalFileName = image.getOriginalFilename();
@@ -87,21 +89,17 @@ public class ItemService  {
 
                 ItemImage itemImage = ItemImage.builder()
                         .fileName(fileName)
-                        .url("http://localhost:8080/api/item/images" + "/" + fileName)
+                        .url("http://43.200.32.144:8080/api/item/images" + "/" + fileName)
                         .item(item)
                         .build();
-
-                item.addItemImage(itemImage);//아이템에 이미지 저장
 
                 itemImageRepository.save(itemImage); //이미지 저장
             }
         }
 
-
-        itemCategory.addItem(item);
-
-        return saveItemd.getId();
-
+        return IdResponse.builder()
+                .id(saveItemd.getId())
+                .build();
     }
 
     @Transactional
@@ -113,6 +111,7 @@ public class ItemService  {
     public ItemResponse getItemResponseById(Long itemId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(ItemNotFound::new);
+        List<ItemImage> itemImages = itemImageRepository.findByItemId(itemId);
 
         return ItemResponse.builder()
                 .id(item.getId())
@@ -123,29 +122,35 @@ public class ItemService  {
                 .itemPrice(item.getItemPrice())
                 .itemStatus(item.getItemStatus())
                 .buyerId(item.getBuyer() != null ? item.getBuyer().getId() : null)
-                .itemImagesUrl(item.getItemImages().stream().map(ItemImage::getUrl).collect(Collectors.toList()))
+                .itemImagesUrl(itemImages.stream().map(ItemImage::getUrl).collect(Collectors.toList()))
                 .viewCount(item.getViewCount())
                 .created_at(item.getCreated_at())
                 .updated_at((item.getUpdated_at()))
+                .nickName(memberRepository.getReferenceById(item.getMember().getId()).getNickname())
                 .build();
     }
 
 
+    public CustomItemPageResponse getAllItemPaging(ItemSortFilter itemSortFilter, String accessToken, String search) {
 
-    public CustomItemPageResponse getAllItemPaging(int page, int size, String accessToken, String search, String orderBy, String direction) {
+        String[] sortWord = itemSortFilter.getOrder().split("_");
+        String orderBy = sortWord[0];
+        String direction = sortWord[1];
 
-        Sort.Order order = new Sort.Order(Sort.Direction.fromString(direction), orderBy);
-        Sort sort = Sort.by(order);
-        Pageable pageable = PageRequest.of(page-1, size, sort);
+        Sort.Order field = new Sort.Order(Sort.Direction.fromString(direction), orderBy);
+        Sort sort = Sort.by(field);
+        Pageable pageable = PageRequest.of(itemSortFilter.getPage()-1, itemSortFilter.getSize(), sort);
         Page<Item> itemsPage;
 
         if (accessToken != null) {
+
+            String extractedToken = accessToken.substring("Bearer ".length());
 
             SecretKey key = Keys.hmacShaKeyFor(appConfig.getJwtKey());
             Jws<Claims> claims = Jwts.parserBuilder()
                     .setSigningKey(key)
                     .build()
-                    .parseClaimsJws(accessToken);
+                    .parseClaimsJws(extractedToken);
 
             Long memberId = claims.getBody().get("memberId", Long.class);
             Member member = memberRepository.findById(memberId)
@@ -162,10 +167,10 @@ public class ItemService  {
 
         } else {
             if (search != null) {
-                itemsPage = itemRepository.findByItemNameContaining(search, pageable);
+                itemsPage = itemRepository.findByItemNameContainingAndItemStatusNot(search, ItemStatus.SOLD ,pageable);
             }
              else {
-                itemsPage = itemRepository.findAll(pageable);
+                itemsPage = itemRepository.findAllExcludeSold(pageable);
             }
 
         }
@@ -178,6 +183,12 @@ public class ItemService  {
     }
 
     public ItemResponse mapItemToResponse(Item item) {
+        List<ItemImage> itemImages = itemImageRepository.findByItemId(item.getId());
+
+        List<String> firstImageUrl = new ArrayList<>();
+        if (!itemImages.isEmpty()) {
+            firstImageUrl.add(itemImages.get(0).getUrl());
+        }
         return ItemResponse.builder()
                 .id(item.getId())
                 .memberId(item.getMember().getId())
@@ -187,16 +198,17 @@ public class ItemService  {
                 .itemPrice(item.getItemPrice())
                 .itemStatus(item.getItemStatus())
                 .buyerId(item.getBuyer() != null ? item.getBuyer().getId() : null)
-                .itemImagesUrl(item.getItemImages().stream().map(ItemImage::getUrl).collect(Collectors.toList()))
+                .itemImagesUrl(firstImageUrl)
                 .viewCount(item.getViewCount())
                 .created_at(item.getCreated_at())
                 .updated_at((item.getUpdated_at()))
+                .nickName(memberRepository.getReferenceById(item.getMember().getId()).getNickname())
                 .build();
     }
 
 
     @Transactional
-    public Long updateItem(Long itemId, ItemUpdate request, MemberSession session) throws IOException {
+    public IdResponse updateItem(Long itemId, ItemUpdate request, MemberSession session) throws IOException {
         // 수정할 Item을 조회합니다.
         Item item = itemRepository.findById(itemId).orElseThrow(ItemNotFound::new);
 
@@ -205,7 +217,7 @@ public class ItemService  {
                 .orElseThrow(ItemCategoryNotFound::new);
 
         Member member = memberRepository.findById(session.id)
-                .orElseThrow(IdNotFound::new);
+                .orElseThrow(IdNotFound::new); //토큰이 1번 유저의 토큰 -> 1번 유저네? ㅇㅋ
 
         if(member == item.getMember()){
 
@@ -224,13 +236,9 @@ public class ItemService  {
                     itemImageRepository.delete(itemImage);
                 }
             }
-            item.getItemImages().clear();
-
-            // 기존 카테고리에서 Item을 제거합니다.
-            item.getItemCategory().removeItem(item);
-
             // 새로운 이미지를 저장합니다.
             if (request.getImages() != null) {
+
                 for (MultipartFile image : request.getImages()) {
                     String originalFileName = image.getOriginalFilename();
                     String extension = originalFileName.substring(originalFileName.lastIndexOf("."));
@@ -242,21 +250,16 @@ public class ItemService  {
 
                     ItemImage itemImage = ItemImage.builder()
                             .fileName(fileName)
-                            .url("http://localhost:8080/api/item/images" + "/" + fileName)
+                            .url("http://43.200.32.144:8080/api/item/images" + "/" + fileName)
                             .item(item)
                             .build();
 
-                    item.addItemImage(itemImage);
                     itemImageRepository.save(itemImage);
-
                 }
             }
-
-            // 새로운 카테고리에 Item을 추가합니다.
-            itemCategory.addItem(item);
-
-            // 업데이트된 Item의 ID를 반환합니다.
-            return item.getId();
+            return IdResponse.builder()
+                    .id(item.getId())
+                    .build();
         }else
             throw new RuntimeException("회원이 일치하지 않습니다");
 
@@ -280,9 +283,6 @@ public class ItemService  {
                 Files.deleteIfExists(targetLocation);
 
             }
-
-            ItemCategory category = item.getItemCategory();
-            category.removeItem(item); // 카테고리에서 상품 제거
 
             itemRepository.delete(item);
         }else

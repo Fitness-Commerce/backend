@@ -1,6 +1,8 @@
 package com.fitnesscommerce.domain.post.repository;
 
+
 import com.fitnesscommerce.domain.item.domain.Item;
+import com.fitnesscommerce.domain.member.domain.Member;
 import com.fitnesscommerce.domain.post.domain.Post;
 import com.fitnesscommerce.domain.post.domain.PostCategory;
 import com.fitnesscommerce.domain.post.domain.PostComment;
@@ -11,6 +13,9 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+import java.util.Optional;
+
 
 public interface PostRepository extends JpaRepository<Post, Long> {
     @Modifying
@@ -19,7 +24,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     Page<Post> findByPostCategory(PostCategory postCategory, Pageable pageable);
 
+
     // 로그인되지 않은 사용자나 accessToken이 제공되지 않은 경우, search로 게시글 제목 검색 및 정렬
     Page<Post> findByTitleContaining(String search, Pageable pageable);
 
+    List<Post> findByMember(Member member);
 }

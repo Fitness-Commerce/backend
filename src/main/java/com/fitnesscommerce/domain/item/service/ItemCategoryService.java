@@ -2,9 +2,12 @@ package com.fitnesscommerce.domain.item.service;
 
 import com.fitnesscommerce.domain.item.domain.Item;
 import com.fitnesscommerce.domain.item.domain.ItemCategory;
+import com.fitnesscommerce.domain.item.domain.ItemStatus;
 import com.fitnesscommerce.domain.item.dto.request.ItemCategoryCreate;
 import com.fitnesscommerce.domain.item.dto.request.ItemCategoryUpdate;
+import com.fitnesscommerce.domain.item.dto.request.ItemSortFilter;
 import com.fitnesscommerce.domain.item.dto.response.CustomItemPageResponse;
+import com.fitnesscommerce.domain.item.dto.response.IdResponse;
 import com.fitnesscommerce.domain.item.dto.response.ItemCategoryResponse;
 import com.fitnesscommerce.domain.item.dto.response.ItemResponse;
 import com.fitnesscommerce.domain.item.exception.ItemCategoryNotFound;
@@ -21,7 +24,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,24 +39,31 @@ public class ItemCategoryService {
     private final ItemService itemService;
 
     @Transactional
-    public Long createCategory(ItemCategoryCreate request) {
+    public IdResponse createCategory(ItemCategoryCreate request) {
 
         ItemCategory category = ItemCategory.builder()
                 .title(request.getTitle())
                 .build();
 
-        return itemCategoryRepository.save(category).getId();
+
+        Long categoryId=itemCategoryRepository.save(category).getId();
+
+        return IdResponse.builder()
+                .id(categoryId)
+                .build();
     }
 
     @Transactional
-    public Long updateCategory(ItemCategoryUpdate request,Long categoryId) {
+    public IdResponse updateCategory(ItemCategoryUpdate request,Long categoryId) {
 
         ItemCategory itemCategory = itemCategoryRepository.findById(categoryId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 아이템 카테고리를 찾을 수 없습니다."));
+                .orElseThrow(ItemCategoryNotFound::new);
 
         itemCategory.updateCategory(request.getTitle());
 
-        return itemCategory.getId();
+        return IdResponse.builder()
+                .id(itemCategory.getId())
+                .build();
     }
 
     @Transactional
@@ -73,20 +85,23 @@ public class ItemCategoryService {
         return new ItemCategoryResponse(
                 category.getId(),
                 category.getTitle(),
-                category.getItems().stream().map(Item::getId).collect(Collectors.toList()),
                 category.getCreated_at(),
                 category.getUpdated_at()
         );
     }
 
-    public CustomItemPageResponse getItemsByCategoryPaging(Long categoryId, int page, int size, String orderBy, String direction) {
+    public CustomItemPageResponse getItemsByCategoryPaging(Long categoryId, ItemSortFilter itemSortFilter) {
         ItemCategory itemCategory = itemCategoryRepository.findById(categoryId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 아이템 카테고리를 찾을 수 없습니다."));
+                .orElseThrow(ItemCategoryNotFound::new);
+
+        String[] sortWord = itemSortFilter.getOrder().split("_");
+        String orderBy = sortWord[0];
+        String direction = sortWord[1];
 
         Sort.Order order = new Sort.Order(Sort.Direction.fromString(direction), orderBy);
         Sort sort = Sort.by(order);
-        Pageable pageable = PageRequest.of(page - 1, size, sort);
-        Page<Item> itemsPage = itemRepository.findByItemCategory(itemCategory, pageable);
+        Pageable pageable = PageRequest.of(itemSortFilter.getPage() - 1, itemSortFilter.getSize(), sort);
+        Page<Item> itemsPage = itemRepository.findByItemCategoryAndItemStatusNot(itemCategory, ItemStatus.SOLD ,pageable);
 
         List<ItemResponse> content = itemsPage.getContent().stream()
                 .map(itemService::mapItemToResponse)

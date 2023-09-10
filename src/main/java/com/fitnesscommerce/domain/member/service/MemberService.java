@@ -33,7 +33,7 @@ public class MemberService {
     public void signup(MemberJoinRequest request) {
 
         //중복 체크
-        check_duplicates(request);
+        check_duplicates_join(request);
 
         String encryptedPassword = passwordEncoder.encrypt(request.getPassword());
 
@@ -65,11 +65,22 @@ public class MemberService {
 
 
 
-    private void check_duplicates(MemberJoinRequest request) {
+    private void check_duplicates_join(MemberJoinRequest request) {
         Optional<Member> email = memberRepository.findByEmail(request.getEmail());
         if (email.isPresent()) {
             throw new AlreadyExistsEmail();
         }
+        Optional<Member> nickname = memberRepository.findByNickname(request.getNickname());
+        if (nickname.isPresent()) {
+            throw new AlreadyExistsNickname();
+        }
+        Optional<Member> phoneNumber = memberRepository.findByPhoneNumber(request.getPhoneNumber());
+        if (phoneNumber.isPresent()) {
+            throw new AlreadyExistsPhoneNumber();
+        }
+    }
+
+    private void check_duplicates_edit(MemberEditRequest request) {
         Optional<Member> nickname = memberRepository.findByNickname(request.getNickname());
         if (nickname.isPresent()) {
             throw new AlreadyExistsNickname();
@@ -129,10 +140,12 @@ public class MemberService {
         return response;
     }
     @Transactional
-    public void edit(MemberEditRequest request, Long memberId) {
-        Member member = memberRepository.findById(memberId).orElseThrow(IdNotFound::new);
+    public void edit(MemberEditRequest request, MemberSession session) {
+        Member member = memberRepository.findById(session.id).orElseThrow(IdNotFound::new);
 
-        member.editMemberInfo(request.getNickName(), request.getPhoneNumber(), request.getAddress());
+        check_duplicates_edit(request);
+
+        member.editMemberInfo(request.getNickname(), request.getPhoneNumber(), request.getAddress());
 
         member.getArea_range().clear();
 
@@ -142,8 +155,8 @@ public class MemberService {
     }
 
     @Transactional
-    public void editPassword(MemberEditPasswordRequest request, Long memberId) {
-        Member member = memberRepository.findById(memberId).orElseThrow(IdNotFound::new);
+    public void editPassword(MemberEditPasswordRequest request, MemberSession session) {
+        Member member = memberRepository.findById(session.id).orElseThrow(IdNotFound::new);
 
         if (!passwordEncoder.matches(request.getCurrentPassword(), member.getPassword())) {
             throw new VerifyPassword(); //비밀번호 변경할 때 입력한 현재 비밀번호가 잘못 입력됌.
@@ -162,8 +175,9 @@ public class MemberService {
     }
 
     @Transactional
-    public void delete(Long memberId) {
-        memberRepository.deleteById(memberId);
+    public void delete(MemberSession session) {
+        memberRepository.deleteById(session.id);
+
     }
 
 }

@@ -30,6 +30,7 @@ public class PostApiController {
         IdResponse response = postService.save(postCreate, session);
 
         return ResponseEntity.created(URI.create("/api/posts/" + response.getId())).body(response);
+
     }
 
     //게시글 단건 조회
@@ -38,6 +39,8 @@ public class PostApiController {
         postService.updateViewCount(postId);
         return postService.findOnePost(postId);
     }
+
+
 
 
     //게시글 전체 조회

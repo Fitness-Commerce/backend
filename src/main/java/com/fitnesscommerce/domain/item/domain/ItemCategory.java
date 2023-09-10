@@ -21,9 +21,6 @@ public class ItemCategory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToMany(mappedBy = "itemCategory", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Item> items = new ArrayList<>();
-
     private String title;
 
     private LocalDateTime created_at;
@@ -40,8 +37,4 @@ public class ItemCategory {
         this.title = title;
         this.updated_at = LocalDateTime.now();
     }
-
-    public void addItem(Item item) {this.items.add(item);}
-
-    public void removeItem(Item item) {this.items.remove(item);}
 }
