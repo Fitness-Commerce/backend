@@ -42,7 +42,7 @@ public class ItemApiController {
         return ResponseEntity.created(URI.create("/api/items/" + response.getId())).body(response);
     }
 
-    @Operation(summary = "상품 조회", description = "상품 조회 API")
+    @Operation(summary = "상품 단건 조회", description = "상품 단건 조회 API")
     @ApiResponse(responseCode = "200", description = "OK")
     @ApiResponse(responseCode = "404", description = "상품 id를 찾을 수 없음")
     @GetMapping("/api/items/{itemId}")
@@ -53,7 +53,7 @@ public class ItemApiController {
         return itemService.getItemResponseById(itemId);
     }
 
-    @Operation(summary = "상품 전체 조회", description = "상품 목록 조회 API")
+    @Operation(summary = "상품 전체 조회", description = "상품 전체 조회 API")
     @ApiResponse(responseCode = "200", description = "OK")
     @ApiResponse(responseCode = "401", description = "회원 인증 실패")
     @GetMapping("/api/items")
