@@ -80,13 +80,18 @@ public class MemberService {
         }
     }
 
-    private void check_duplicates_edit(MemberEditRequest request) {
+    private void check_duplicates_edit(MemberEditRequest request, Member member) {
+        String memberNickname = member.getNickname();
+        String memberPhoneNumber = member.getPhoneNumber();
+
         Optional<Member> nickname = memberRepository.findByNickname(request.getNickname());
-        if (nickname.isPresent()) {
+        Optional<Member> phoneNumber = memberRepository.findByPhoneNumber(request.getPhoneNumber());
+
+        if (nickname.isPresent() && !request.getNickname().equals(memberNickname)) {
             throw new AlreadyExistsNickname();
         }
-        Optional<Member> phoneNumber = memberRepository.findByPhoneNumber(request.getPhoneNumber());
-        if (phoneNumber.isPresent()) {
+
+        if (phoneNumber.isPresent() && !request.getPhoneNumber().equals(memberPhoneNumber)) {
             throw new AlreadyExistsPhoneNumber();
         }
     }
@@ -143,7 +148,7 @@ public class MemberService {
     public void edit(MemberEditRequest request, MemberSession session) {
         Member member = memberRepository.findById(session.id).orElseThrow(IdNotFound::new);
 
-        check_duplicates_edit(request);
+        check_duplicates_edit(request, member);
 
         member.editMemberInfo(request.getNickname(), request.getPhoneNumber(), request.getAddress());
 
@@ -152,6 +157,14 @@ public class MemberService {
         for (String area : request.getArea_range()) {
             member.getArea_range().add(area);
         }
+    }
+
+    public void editValidate(MemberEditRequest request, MemberSession session) {
+        Member member = memberRepository.findById(session.id).orElseThrow(IdNotFound::new);
+
+        check_duplicates_edit(request, member);
+
+        System.out.println("check success");
     }
 
     @Transactional
