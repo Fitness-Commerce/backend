@@ -77,6 +77,15 @@ public class MemberApiController {
 
         return ResponseEntity.ok().build();
     }
+
+    @PutMapping("/api/members/myProfile/validate")
+    public ResponseEntity validateEditMember(@RequestBody MemberEditRequest request,
+                                             @Parameter(name = "accessToken", description = "로그인 한 회원의 accessToken", in = ParameterIn.HEADER) MemberSession session) {
+        memberService.editValidate(request, session);
+
+        return ResponseEntity.ok().build();
+    }
+
     @Operation(summary = "회원 본인 비밀번호 수정", description = "회원 본인 비밀번호 수정 API", responses = {
             @ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "401", description = "회원 인증 실패")
