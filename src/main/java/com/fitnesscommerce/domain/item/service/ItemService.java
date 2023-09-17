@@ -111,12 +111,13 @@ public class ItemService  {
     public ItemResponse getItemResponseById(Long itemId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(ItemNotFound::new);
+
         List<ItemImage> itemImages = itemImageRepository.findByItemId(itemId);
 
         return ItemResponse.builder()
                 .id(item.getId())
                 .memberId(item.getMember().getId())
-                .itemCategoryId(item.getItemCategory().getId())
+                .itemCategoryTitle(itemCategoryRepository.getReferenceById(item.getItemCategory().getId()).getTitle())
                 .itemName(item.getItemName())
                 .itemDetail(item.getItemDetail())
                 .itemPrice(item.getItemPrice())
@@ -127,6 +128,7 @@ public class ItemService  {
                 .created_at(item.getCreated_at())
                 .updated_at((item.getUpdated_at()))
                 .nickName(memberRepository.getReferenceById(item.getMember().getId()).getNickname())
+                .transactionArea(memberRepository.getReferenceById(item.getMember().getId()).getArea_range())
                 .build();
     }
 
@@ -192,7 +194,7 @@ public class ItemService  {
         return ItemResponse.builder()
                 .id(item.getId())
                 .memberId(item.getMember().getId())
-                .itemCategoryId(item.getItemCategory().getId())
+                .itemCategoryTitle(itemCategoryRepository.getReferenceById(item.getItemCategory().getId()).getTitle())
                 .itemName(item.getItemName())
                 .itemDetail(item.getItemDetail())
                 .itemPrice(item.getItemPrice())
@@ -203,6 +205,7 @@ public class ItemService  {
                 .created_at(item.getCreated_at())
                 .updated_at((item.getUpdated_at()))
                 .nickName(memberRepository.getReferenceById(item.getMember().getId()).getNickname())
+                .transactionArea(memberRepository.getReferenceById(item.getMember().getId()).getArea_range())
                 .build();
     }
 

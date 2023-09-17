@@ -8,21 +8,27 @@ import com.fitnesscommerce.domain.item.dto.response.IdResponse;
 import com.fitnesscommerce.domain.item.dto.response.ItemCategoryResponse;
 import com.fitnesscommerce.domain.item.dto.response.ItemResponse;
 import com.fitnesscommerce.domain.item.service.ItemCategoryService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "상품 카테고리", description = "상품 카테고리 관련 API")
 public class ItemCategoryApiController {
 
     private final ItemCategoryService itemCategoryService;
 
+    @Operation(summary = "카테고리 생성", description = "카테고리 생성 API")
+    @ApiResponse(responseCode = "201", description = "카테고리 생성 성공")
     @PostMapping("/api/categories")
     public ResponseEntity<IdResponse> create(@RequestBody ItemCategoryCreate request) {
 
@@ -31,27 +37,43 @@ public class ItemCategoryApiController {
         return ResponseEntity.created(URI.create("/api/category")).body(response);
     }
 
+    @Operation(summary = "카테고리 수정", description = "카테고리 수정 API")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(responseCode = "404", description = "카테고리 id를 찾을 수 없음")
     @PutMapping("/api/categories/{categoryId}")
-    public ResponseEntity<IdResponse> update(@RequestBody ItemCategoryUpdate request, @PathVariable Long categoryId){
+    public ResponseEntity<IdResponse> update(
+            @RequestBody ItemCategoryUpdate request,
+            @Parameter(name = "categoryId", description = "카테고리 id", in = ParameterIn.PATH) @PathVariable Long categoryId) {
 
-        IdResponse response = itemCategoryService.updateCategory(request,categoryId);
+        IdResponse response = itemCategoryService.updateCategory(request, categoryId);
 
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/api/categories/{categoryId}") //문제없음
-    public void delete(@PathVariable Long categoryId) {itemCategoryService.deleteCategory(categoryId);}
+    @Operation(summary = "카테고리 삭제", description = "카테고리 삭제 API")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(responseCode = "404", description = "카테고리 id를 찾을 수 없음")
+    @DeleteMapping("/api/categories/{categoryId}")
+    public void delete(
+            @Parameter(name = "categoryId", description = "카테고리 id", in = ParameterIn.PATH) @PathVariable Long categoryId) {
+        itemCategoryService.deleteCategory(categoryId);
+    }
 
+    @Operation(summary = "전체 카테고리 조회", description = "전체 카테고리 조회 API")
+    @ApiResponse(responseCode = "200", description = "OK")
     @GetMapping("/api/categories")
     public ResponseEntity<List<ItemCategoryResponse>> getAllCategories() {
         List<ItemCategoryResponse> categories = itemCategoryService.getAllCategories();
         return ResponseEntity.ok(categories);
     }
 
+    @Operation(summary = "카테고리별 상품 전체 조회", description = "카테고리별 상품 전체 조회 API")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(responseCode = "404", description = "카테고리 id를 찾을 수 없음")
     @GetMapping("/api/categories/{categoryId}/items")
     public ResponseEntity<CustomItemPageResponse> getItemsByCategoryPaging(
-            @PathVariable Long categoryId,
-            @ModelAttribute ItemSortFilter itemSortFilter) {
+            @Parameter(name = "categoryId", description = "카테고리 id", in = ParameterIn.PATH) @PathVariable Long categoryId,
+            @Parameter(name = "page&size&order", description = "요청할 page&size$order", in = ParameterIn.QUERY) @ModelAttribute ItemSortFilter itemSortFilter) {
 
         return ResponseEntity.ok(itemCategoryService.getItemsByCategoryPaging(categoryId, itemSortFilter));
     }
