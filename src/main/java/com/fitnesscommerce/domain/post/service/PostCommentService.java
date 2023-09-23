@@ -7,6 +7,9 @@ import com.fitnesscommerce.domain.post.domain.Post;
 import com.fitnesscommerce.domain.post.domain.PostComment;
 import com.fitnesscommerce.domain.post.dto.request.PostCommentCreate;
 import com.fitnesscommerce.domain.post.dto.request.PostCommentUpdate;
+import com.fitnesscommerce.domain.post.dto.request.PostSortFilter;
+import com.fitnesscommerce.domain.post.dto.response.CustomPostCommentPageResponse;
+import com.fitnesscommerce.domain.post.dto.response.IdResponse;
 import com.fitnesscommerce.domain.post.dto.response.PostCommentResponse;
 import com.fitnesscommerce.domain.post.dto.response.PostResponse;
 import com.fitnesscommerce.domain.post.exception.PostCommentNotFound;
@@ -30,6 +33,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class PostCommentService {
+
     private final PostCommentRepository postCommentRepository;
     private final MemberRepository memberRepository;
     private final PostRepository postRepository;
@@ -37,11 +41,13 @@ public class PostCommentService {
 
     // 게시글 댓글 작성
     @Transactional
-    public PostCommentResponse saveComment(Long postId, PostCommentCreate postCommentCreate, MemberSession session){
-        Post post = postRepository.findById(postId)
-                .orElseThrow(PostNotFound::new);
+    public IdResponse saveComment(PostCommentCreate postCommentCreate, MemberSession session, Long postId){
+
         Member member = memberRepository.findById(session.id)
                 .orElseThrow(IdNotFound::new);
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(PostNotFound::new);
 
         PostComment postComment = PostComment.builder()
                 .post(post)
@@ -49,37 +55,38 @@ public class PostCommentService {
                 .member(member)
                 .build();
 
-        postCommentRepository.save(postComment);
+        PostComment savePostComment = postCommentRepository.save(postComment);
 
-        PostCommentResponse postCommentResponse = PostCommentResponse.builder()
-                .postId(post.getId())
-                .nickname(member.getNickname())
-                .content(postComment.getContent())
+        return IdResponse.builder()
+                .id(savePostComment.getId())
                 .build();
 
-        return postCommentResponse;
     }
 
     // 게시글 댓글 조회
-    /*public PostCommentResponse getPostCommentPaging(Long postId, int page, int size, String orderBy, String direction) {
+    public CustomPostCommentPageResponse getCommentPaging(Long postId, PostSortFilter postSortFilter) {
+
+        String[] sortPost = postSortFilter.getOrder().split("_");
+        String orderBy = sortPost[0];
+        String direction = sortPost[1];
 
         Sort.Order order = new Sort.Order(Sort.Direction.fromString(direction), orderBy);
         Sort sort = Sort.by(order);
-
-        Pageable pageable = PageRequest.of(page-1, size, sort);
+        Pageable pageable = PageRequest.of(postSortFilter.getPage()-1, postSortFilter.getSize(),sort);
         Page<PostComment> postsCommentPage = postCommentRepository.findByPostId(postId, pageable);
 
         List<PostCommentResponse> content = postsCommentPage.getContent().stream()
                 .map(this::mapToCommentResponse)
                 .collect(Collectors.toList());
 
-        return new PostCommentResponse(postsCommentPage.getTotalPages(), content);
-    }*/
+        return new CustomPostCommentPageResponse(postsCommentPage.getTotalPages(), content);
+    }
 
     private PostCommentResponse mapToCommentResponse(PostComment comment) {
         return PostCommentResponse.builder()
                 .id(comment.getId())
                 .postId(comment.getPost().getId())
+                .memberId(comment.getMember().getId())
                 .nickname(comment.getMember().getNickname())
                 .content(comment.getContent())
                 .createdAt(comment.getCreated_at())
@@ -89,7 +96,7 @@ public class PostCommentService {
 
     // 게시글 댓글 수정
     @Transactional
-    public Long updateComment(Long postId, Long commentId, PostCommentUpdate postCommentUpdate, MemberSession session) {
+    public IdResponse updateComment(Long postId, Long commentId, PostCommentUpdate postCommentUpdate, MemberSession session) {
         PostComment postComment = postCommentRepository.findById(commentId)
                 .orElseThrow(PostCommentNotFound::new);
         Post post = postRepository.findById(postId)
@@ -99,10 +106,11 @@ public class PostCommentService {
 
         if (member == postComment.getMember()){
             postComment.updateComment(postCommentUpdate.getContent());
+            return IdResponse.builder()
+                    .id(post.getId())
+                    .build();
         }else
             throw new RuntimeException("회원이 아닙니다.");
-
-        return postComment.getId();
     }
 
     // 게시글 댓글 삭제
@@ -117,7 +125,7 @@ public class PostCommentService {
                 .orElseThrow(IdNotFound::new);
 
        if(member == postComment.getMember()){
-           post.removePostComment(postComment);
+           postCommentRepository.delete(postComment);
        }else
            throw new RuntimeException("회원이 아닙니다.");
 

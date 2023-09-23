@@ -17,11 +17,12 @@ public class PostResponse { //PostResponseDTO는 엔티티에 대한 정보를 �
     private int viewCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String nickname;
 
 
     @Builder
     public PostResponse(Long id, Long memberId, Long postCategoryId, List<String> postImageUrl,
-                        String title, String content, int viewCount, LocalDateTime createdAt, LocalDateTime updatedAt) {
+                        String title, String content, int viewCount, LocalDateTime createdAt, LocalDateTime updatedAt, String nickname){
         this.id = id;
         this.memberId = memberId;
         this.postCategoryId = postCategoryId;
@@ -31,5 +32,6 @@ public class PostResponse { //PostResponseDTO는 엔티티에 대한 정보를 �
         this.viewCount = viewCount;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.nickname = nickname;
     }
 }
