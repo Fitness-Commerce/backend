@@ -6,8 +6,8 @@ import com.fitnesscommerce.domain.item.dto.request.ItemSortFilter;
 import com.fitnesscommerce.domain.item.dto.response.CustomItemPageResponse;
 import com.fitnesscommerce.domain.item.dto.response.IdResponse;
 import com.fitnesscommerce.domain.item.dto.response.ItemCategoryResponse;
-import com.fitnesscommerce.domain.item.dto.response.ItemResponse;
 import com.fitnesscommerce.domain.item.service.ItemCategoryService;
+import com.fitnesscommerce.global.config.data.MemberSession;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -29,34 +29,40 @@ public class ItemCategoryApiController {
 
     @Operation(summary = "카테고리 생성", description = "카테고리 생성 API")
     @ApiResponse(responseCode = "201", description = "카테고리 생성 성공")
+    @ApiResponse(responseCode = "401", description = "회원 인증 실패")
     @PostMapping("/api/categories")
-    public ResponseEntity<IdResponse> create(@RequestBody ItemCategoryCreate request) {
+    public ResponseEntity<IdResponse> create(@RequestBody ItemCategoryCreate request,
+                                             @Parameter(name = "accessToken", description = "로그인 한 회원의 accessToken", in = ParameterIn.HEADER) MemberSession session) {
 
-        IdResponse response = itemCategoryService.createCategory(request);
+        IdResponse response = itemCategoryService.createCategory(request,session);
 
         return ResponseEntity.created(URI.create("/api/category")).body(response);
     }
 
     @Operation(summary = "카테고리 수정", description = "카테고리 수정 API")
     @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(responseCode = "401", description = "회원 인증 실패")
     @ApiResponse(responseCode = "404", description = "카테고리 id를 찾을 수 없음")
     @PutMapping("/api/categories/{categoryId}")
     public ResponseEntity<IdResponse> update(
             @RequestBody ItemCategoryUpdate request,
-            @Parameter(name = "categoryId", description = "카테고리 id", in = ParameterIn.PATH) @PathVariable Long categoryId) {
+            @Parameter(name = "categoryId", description = "카테고리 id", in = ParameterIn.PATH) @PathVariable Long categoryId,
+            @Parameter(name = "accessToken", description = "로그인 한 회원의 accessToken", in = ParameterIn.HEADER) MemberSession session) {
 
-        IdResponse response = itemCategoryService.updateCategory(request, categoryId);
+        IdResponse response = itemCategoryService.updateCategory(request, categoryId, session);
 
         return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "카테고리 삭제", description = "카테고리 삭제 API")
     @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(responseCode = "401", description = "회원 인증 실패")
     @ApiResponse(responseCode = "404", description = "카테고리 id를 찾을 수 없음")
     @DeleteMapping("/api/categories/{categoryId}")
     public void delete(
-            @Parameter(name = "categoryId", description = "카테고리 id", in = ParameterIn.PATH) @PathVariable Long categoryId) {
-        itemCategoryService.deleteCategory(categoryId);
+            @Parameter(name = "categoryId", description = "카테고리 id", in = ParameterIn.PATH) @PathVariable Long categoryId,
+            @Parameter(name = "accessToken", description = "로그인 한 회원의 accessToken", in = ParameterIn.HEADER) MemberSession session) {
+        itemCategoryService.deleteCategory(categoryId, session);
     }
 
     @Operation(summary = "전체 카테고리 조회", description = "전체 카테고리 조회 API")
