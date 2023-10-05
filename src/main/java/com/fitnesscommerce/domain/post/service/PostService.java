@@ -220,10 +220,7 @@ public class PostService {
             throw new RuntimeException("회원이 일치하지 않습니다.");
     }
 
-
-
-
-
+    
     //게시글 삭제
     @Transactional
     public void deletePost(Long postId, MemberSession session) throws IOException {

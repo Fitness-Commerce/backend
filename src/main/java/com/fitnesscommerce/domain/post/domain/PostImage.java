@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 
@@ -26,6 +28,7 @@ public class PostImage{
     private LocalDateTime updated_at;
 
     @ManyToOne(fetch = FetchType.LAZY) //Post와 PostImage 사이의 관계가 다대일 관계임을 나타냅니다.
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "post_id") //외래 키 칼럼의 이름을 지정합니다.
     private Post post;
 
