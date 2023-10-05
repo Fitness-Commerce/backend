@@ -299,7 +299,6 @@ public class ItemService  {
         Member member = memberRepository.findById(session.id)
                 .orElseThrow(IdNotFound::new);
 
-        System.out.println(request.getItemId());
         Item item = itemRepository.findById(request.getItemId()).orElseThrow(ItemNotFound::new);
 
         Member buyer = memberRepository.findById(request.getBuyerId())

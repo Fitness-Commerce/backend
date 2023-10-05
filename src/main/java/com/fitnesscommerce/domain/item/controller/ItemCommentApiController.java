@@ -5,8 +5,6 @@ import com.fitnesscommerce.domain.item.dto.request.ItemCommentUpdate;
 import com.fitnesscommerce.domain.item.dto.request.ItemSortFilter;
 import com.fitnesscommerce.domain.item.dto.response.CustomItemCommentPageResponse;
 import com.fitnesscommerce.domain.item.dto.response.IdResponse;
-import com.fitnesscommerce.domain.item.dto.response.ItemCommentResponse;
-import com.fitnesscommerce.domain.item.dto.response.ItemResponse;
 import com.fitnesscommerce.domain.item.service.ItemCommentService;
 import com.fitnesscommerce.global.config.data.MemberSession;
 import io.swagger.v3.oas.annotations.Operation;

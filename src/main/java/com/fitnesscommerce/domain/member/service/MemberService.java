@@ -1,5 +1,7 @@
 package com.fitnesscommerce.domain.member.service;
 
+import com.fitnesscommerce.domain.item.domain.Item;
+import com.fitnesscommerce.domain.item.repository.ItemRepository;
 import com.fitnesscommerce.domain.member.crypto.PasswordEncoder;
 import com.fitnesscommerce.domain.member.domain.Address;
 import com.fitnesscommerce.domain.member.domain.Member;
@@ -28,6 +30,8 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final AppConfig appConfig;
+    //아이템레포지토리 추가
+    private final ItemRepository itemRepository;
 
     @Transactional
     public void signup(MemberJoinRequest request) {
@@ -189,6 +193,15 @@ public class MemberService {
 
     @Transactional
     public void delete(MemberSession session) {
+        //member 받아오기
+        Member member = memberRepository.findById(session.id).orElseThrow(IdNotFound::new);
+
+        //해당 회원의 buyer null값 바꾸기
+        List<Item> items = itemRepository.findByBuyer(member);
+        for(Item item : items){
+            item.setBuyer(null);
+        }
+
         memberRepository.deleteById(session.id);
 
     }

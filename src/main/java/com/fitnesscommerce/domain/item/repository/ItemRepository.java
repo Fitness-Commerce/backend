@@ -34,5 +34,6 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
     List<Item> findByMember(Member member);
 
+    List<Item> findByBuyer(Member member);
 
 }

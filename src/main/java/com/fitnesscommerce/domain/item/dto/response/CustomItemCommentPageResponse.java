@@ -1,6 +1,5 @@
 package com.fitnesscommerce.domain.item.dto.response;
 
-import com.fitnesscommerce.domain.item.domain.ItemComment;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
