@@ -1,5 +1,7 @@
 package com.fitnesscommerce.domain.member.service;
 
+import com.fitnesscommerce.domain.item.domain.Item;
+import com.fitnesscommerce.domain.item.repository.ItemRepository;
 import com.fitnesscommerce.domain.member.crypto.PasswordEncoder;
 import com.fitnesscommerce.domain.member.domain.Address;
 import com.fitnesscommerce.domain.member.domain.Member;
@@ -28,6 +30,8 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final AppConfig appConfig;
+    //아이템레포지토리 추가
+    private final ItemRepository itemRepository;
 
     @Transactional
     public void signup(MemberJoinRequest request) {
@@ -80,13 +84,18 @@ public class MemberService {
         }
     }
 
-    private void check_duplicates_edit(MemberEditRequest request) {
+    private void check_duplicates_edit(MemberEditRequest request, Member member) {
+        String memberNickname = member.getNickname();
+        String memberPhoneNumber = member.getPhoneNumber();
+
         Optional<Member> nickname = memberRepository.findByNickname(request.getNickname());
-        if (nickname.isPresent()) {
+        Optional<Member> phoneNumber = memberRepository.findByPhoneNumber(request.getPhoneNumber());
+
+        if (nickname.isPresent() && !request.getNickname().equals(memberNickname)) {
             throw new AlreadyExistsNickname();
         }
-        Optional<Member> phoneNumber = memberRepository.findByPhoneNumber(request.getPhoneNumber());
-        if (phoneNumber.isPresent()) {
+
+        if (phoneNumber.isPresent() && !request.getPhoneNumber().equals(memberPhoneNumber)) {
             throw new AlreadyExistsPhoneNumber();
         }
     }
@@ -143,7 +152,7 @@ public class MemberService {
     public void edit(MemberEditRequest request, MemberSession session) {
         Member member = memberRepository.findById(session.id).orElseThrow(IdNotFound::new);
 
-        check_duplicates_edit(request);
+        check_duplicates_edit(request, member);
 
         member.editMemberInfo(request.getNickname(), request.getPhoneNumber(), request.getAddress());
 
@@ -152,6 +161,14 @@ public class MemberService {
         for (String area : request.getArea_range()) {
             member.getArea_range().add(area);
         }
+    }
+
+    public void editValidate(MemberEditRequest request, MemberSession session) {
+        Member member = memberRepository.findById(session.id).orElseThrow(IdNotFound::new);
+
+        check_duplicates_edit(request, member);
+
+        System.out.println("check success");
     }
 
     @Transactional
@@ -176,6 +193,15 @@ public class MemberService {
 
     @Transactional
     public void delete(MemberSession session) {
+        //member 받아오기
+        Member member = memberRepository.findById(session.id).orElseThrow(IdNotFound::new);
+
+        //해당 회원의 buyer null값 바꾸기
+        List<Item> items = itemRepository.findByBuyer(member);
+        for(Item item : items){
+            item.setBuyer(null);
+        }
+
         memberRepository.deleteById(session.id);
 
     }

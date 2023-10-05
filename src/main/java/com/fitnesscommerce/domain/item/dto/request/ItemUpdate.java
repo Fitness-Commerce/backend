@@ -1,6 +1,5 @@
 package com.fitnesscommerce.domain.item.dto.request;
 
-import com.fitnesscommerce.domain.item.domain.ItemStatus;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

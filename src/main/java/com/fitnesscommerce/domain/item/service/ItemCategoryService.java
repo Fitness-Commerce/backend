@@ -11,22 +11,22 @@ import com.fitnesscommerce.domain.item.dto.response.IdResponse;
 import com.fitnesscommerce.domain.item.dto.response.ItemCategoryResponse;
 import com.fitnesscommerce.domain.item.dto.response.ItemResponse;
 import com.fitnesscommerce.domain.item.exception.ItemCategoryNotFound;
-import com.fitnesscommerce.domain.item.exception.ItemNotFound;
 import com.fitnesscommerce.domain.item.repository.ItemCategoryRepository;
 import com.fitnesscommerce.domain.item.repository.ItemRepository;
+import com.fitnesscommerce.domain.member.domain.Member;
+import com.fitnesscommerce.domain.member.domain.Role;
+import com.fitnesscommerce.domain.member.exception.IdNotFound;
+import com.fitnesscommerce.domain.member.repository.MemberRepository;
+import com.fitnesscommerce.global.config.data.MemberSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,40 +37,64 @@ public class ItemCategoryService {
     private final ItemCategoryRepository itemCategoryRepository;
     private final ItemRepository itemRepository;
     private final ItemService itemService;
+    private final MemberRepository memberRepository;
 
     @Transactional
-    public IdResponse createCategory(ItemCategoryCreate request) {
+    public IdResponse createCategory(ItemCategoryCreate request, MemberSession session) {
 
-        ItemCategory category = ItemCategory.builder()
-                .title(request.getTitle())
-                .build();
+        Member member = memberRepository.findById(session.id)
+                .orElseThrow(IdNotFound::new);
+
+        if(member.getRole() == Role.ADMIN){
+
+            ItemCategory category = ItemCategory.builder()
+                    .title(request.getTitle())
+                    .build();
 
 
-        Long categoryId=itemCategoryRepository.save(category).getId();
+            Long categoryId=itemCategoryRepository.save(category).getId();
 
-        return IdResponse.builder()
-                .id(categoryId)
-                .build();
+            return IdResponse.builder()
+                    .id(categoryId)
+                    .build();
+        }else
+            throw new RuntimeException("관리자가 아닙니다.");
+
     }
 
     @Transactional
-    public IdResponse updateCategory(ItemCategoryUpdate request,Long categoryId) {
+    public IdResponse updateCategory(ItemCategoryUpdate request,Long categoryId,MemberSession session) {
 
         ItemCategory itemCategory = itemCategoryRepository.findById(categoryId)
                 .orElseThrow(ItemCategoryNotFound::new);
 
-        itemCategory.updateCategory(request.getTitle());
+        Member member = memberRepository.findById(session.id)
+                .orElseThrow(IdNotFound::new);
 
-        return IdResponse.builder()
-                .id(itemCategory.getId())
-                .build();
+        if(member.getRole() == Role.ADMIN){
+
+            itemCategory.updateCategory(request.getTitle());
+
+            return IdResponse.builder()
+                    .id(itemCategory.getId())
+                    .build();
+        }else
+            throw new RuntimeException("관리자가 아닙니다.");
+
     }
 
     @Transactional
-    public void deleteCategory(Long categoryId){
+    public void deleteCategory(Long categoryId, MemberSession session){
         ItemCategory itemCategory = itemCategoryRepository.findById(categoryId)
                 .orElseThrow(ItemCategoryNotFound::new);
-        itemCategoryRepository.delete(itemCategory);
+        Member member = memberRepository.findById(session.id)
+                .orElseThrow(IdNotFound::new);
+
+        if(member.getRole() == Role.ADMIN){
+
+            itemCategoryRepository.delete(itemCategory);
+        }else
+            throw new RuntimeException("관리자가 아닙니다.");
     }
 
     public List<ItemCategoryResponse> getAllCategories() {
