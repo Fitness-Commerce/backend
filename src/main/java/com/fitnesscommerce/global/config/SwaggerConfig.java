@@ -22,6 +22,5 @@ public class SwaggerConfig {
                 .description("Springdoc swagger UI test")
                 .version("1.0.0");
     }
-
 }
 
