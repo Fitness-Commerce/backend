@@ -47,6 +47,7 @@ public class ChatRoomService {
         Member member = memberRepository.findById(session.id).orElseThrow(IdNotFound::new);
 
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId).orElseThrow(IllegalStateException::new);
+        //todo buyer + itemId로 채팅방을 찾아야함
 
         return chatMessageRepository.findByChatRoom(chatRoom).stream()
                 .map(chatMessage -> new MessagesResponse(chatMessage, member))

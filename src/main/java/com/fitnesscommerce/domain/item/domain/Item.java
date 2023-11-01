@@ -25,7 +25,7 @@ public class Item {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "item_category_id")
     private ItemCategory itemCategory;
 
@@ -38,7 +38,7 @@ public class Item {
     @Enumerated(EnumType.STRING)
     private ItemStatus itemStatus;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "buyer_id")
     private Member buyer;
 
@@ -77,4 +77,5 @@ public class Item {
         this.buyer = buyer;
     }
 
+    
 }
