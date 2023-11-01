@@ -66,5 +66,11 @@
 - 게시글 댓글 등록, 조회, 수정, 삭제 가능
     
     <br><br>
+
+### ✅ ERD
+<div align='center'>
+<img src="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FdLo5Ur%2FbtszCF8bMFZ%2F509IUbDVcl77tLzHDDbzK0%2Fimg.png">
+</div>
+<br><br>
 <hr>
 <br>
