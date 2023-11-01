@@ -1,77 +1,70 @@
 # Fitness-Commerce
 
-## Web 기능정의서
+## 구현 기능
 
-## API Spec
+### ✅ User
+- 회원가입
+- 이메일, 비밀번호 유효성 검사
+- 도로명 주소 API를 통한 주소지 입력
+- 모달창을 이용한 동의 필수 항목 내용 출력
+- 로그인 / 로그아웃
+- Session을 통한 로그인 상태 유지 및 아이디 저장 기능
+- 네이버, 카카오 API를 통한 로그인(카카오 로그인 시 추가 정보 입력)
+- 회원 정보 수정
+- 마이페이지의 회원정보 및 프로필 수정 가능
 
-|Function|Method|End Point|Page|
-|---|---|---|---|
-|회원가입|POST|/api/members/signup||
-|로그인|POST|/api/members/login||
-|로그아웃|POST|/api/members/logout||
-|회원정보 수정|PUT|/api/members/{member_id}||
-|회원 비밀번호 수정|PUT|/api/members/{member_id}/password||
-|회원 단건 조회(상대방)|GET|/api/members/{member_id}||
-|회원 단건 조회(본인)|GET|/api/members/mypage||
-|회원 전체 조회|GET|/api/members||
-|회원탈퇴|DELETE|/api/members/{member_id}||
-|상품 등록|POST|/api/items||
-|상품 수정|PUT|/api/items/{itemId}||
-|상품 단건 조회|GET|/api/items/{itemId}||
-|상품 전체 조회|GET|/api/items||
-|상품 삭제|DELETE|/api/items/{itemId}||
-|상품 검색|GET|/api/items/search||
-|상품 댓글 작성|POST|/api/items/{itemId}/comments||
-|상품 댓글 조회|GET|/api/items/{itemId}/comments||
-|상품 댓글 수정|PUT|/api/items/{itemId}/comments/{commentId)||
-|상품 댓글 삭제|DELETE|/api/items/{itemId}/comments/{commentId)||
-|상품 카테고리 생성|POST|/api/categories||
-|카테고리별 상품 조회|GET|/api/categories/{category_id}/items||
-|카테고리 목록 조회|GET|/api/categories||
-|카테고리 수정|PUT|/api/categories/{category_id}||
-|카테고리 삭제|DELETE|/api/categories/{category_id}||
-|게시글 작성|POST|/api/posts||
-|게시글 단건 조회|GET|/api/posts/{postId}||
-|게시글 전체 조회|GET|/api/posts||
-|게시글 수정|PUT|/api/posts/{postId}||
-|게시글 삭제|DELETE|/api/posts/{postId}||
-|게시글 검색|GET|/api/posts/search||
-|게시판 생성|POST|/api/boards||
-|게시판별 게시글 조회|GET|/api/boards/{boardId}/posts||
-|게시판 목록 조회|GET|/api/boards||
-|게시판 수정|GET|/api/boards/{boardId}||
-|게시판 삭제|DELETE|/api/boards/{boardId}||
-|채팅방 생성|POST|/api/chatrooms||
-|채팅방 상세 조회|GET|/api/chatrooms/{chatroomId}||
-|채팅방 삭제|DELETE|/api/chatrooms/{chatroomId}||
-|채팅방 메시지 전송|POST|/api/chatrooms/{chatroomId}/messages||
-
-## ERD
-
-<img src="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2Fcp4Hm0%2Fbtsrf44uvKe%2Fkhx1Q7YEYfN8gUGfNI5o21%2Fimg.png" width="500" height="500"/>
-
-## Commit Convention
-
-> feat: 사용자 등록 기능 추가
->
-> 사용자 등록 기능을 추가하였습니다. 사용자의 정보를 입력받아 데이터베이스에 저장합니다.
->
-> 변경 내용:
-> 
-> - 사용자 정보 입력 폼 디자인
-> - 데이터베이스 연동 및 저장 로직 구현
-
-
+- 회원 탈퇴
+- 대시보드 관리
+- 구매 입찰 등록, 즉시 구매한 상품의 정보 조회 가능
+- 판매 상태(판매완료, 판매불가, 판매대기)에 따른 전체 판매 내역 조회 가능
+- 구매 및 판매 상품 상세 조회 가능
+  <br><br>
+<hr>
 <br>
-위의 예시처럼 <유형>에는 다양한 타입을 사용할 수 있습니다. 주로 사용되는 커밋 유형은 아래와 같습니다:
 
-- feat: 새로운 기능 추가
-- design: css 및 사용자 UI 디자인 변경
-- fix: 버그 수정
-- chore: 빌드 및 기타 자잘한 작업
-- docs: 문서 수정
-- style: 코드 스타일 변경 (공백, 세미콜론 등)
-- refactor: 코드 리팩토링
-- test: 테스트 코드 추가 또는 수정
-- perf: 성능 개선 관련 작업
-- revert: 이전 커밋으로 되돌리는 작업
+### ✅ Item
+- 상품 검색 및 조회
+  - 카테고리별 상품 조회
+  - 사용자의 거래가능 지역을 기준으로 상품 조회
+  - 검색창을 통해 상품 검색
+
+- 상품 상세 조회
+  - 상품의 대표이미지를 포함한 나머지 이미지와 정보들을 보여줌
+  - 판매자와 채팅을 할 수 있는 채팅아이콘이 있음
+
+- 상품 등록
+  - 상품의 정보들을 입력후 상품등록 
+
+- 상품 상태 수정
+  - 구매자와의 채팅을 통해  해당 상품의 상태값을 판매중, 거래중, 거래완료로 변환가능
+
+- 상품 수정, 삭제
+  - 상품 정보 수정
+  - 상품 삭제
+
+- 상품 댓글
+  - 상품의 댓글 쓰기, 수정, 삭제가능
+  <br><br>
+<hr>
+<br>
+
+### ✅ Post
+- 게시글 등록
+    - 상품과 관련된 스타일 게시글(이미지, 제목, 내용)등록 가능
+- 총 게시글 조회
+    - 내 스타일 버튼 클릭 시 사용자가 등록한 게시글 정보 조회 가능
+- 게시글 수정, 삭제
+    - 게시글 수정, 개별 삭제 및 전체 삭제 가능
+- 게시글 상세 조회
+    - 각 게시글의 상세 정보(작성자 프로필 사진, 닉네임, 작성 날짜, 게시글 정보) 조회가능
+- 게시글 카테고리 등록
+    - 상품과 관련된 스타일 카테고리 등록 가능
+- 총 카테고리 조회
+    - 사용자가 등록한 카테고리 정보 조회 가능
+- 카테고리 수정 삭제
+    - 카테고리 개별 삭제 및 전체 삭제 가능
+- 게시글 댓글 등록, 조회, 수정, 삭제 가능
+    
+    <br><br>
+<hr>
+<br>
